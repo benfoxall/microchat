@@ -1,5 +1,10 @@
 .App {
-  height: 100vh;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
   display: flex;
   flex-direction: column;
 }
@@ -15,6 +20,20 @@ main {
 
 footer {
   background: #0003;
-  height: 1rem;
-  padding: 0.5rem;
+
+  display: flex;
+}
+
+body .App .Toastify__toast {
+  min-height: 0 !important;
+}
+
+.CodeInput {
+  display: flex;
+  flex: 1;
+  margin: 0.5em;
+}
+
+.CodeInput [type='text'] {
+  flex: 1;
 }
