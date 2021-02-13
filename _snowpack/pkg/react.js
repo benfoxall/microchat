@@ -3,5 +3,6 @@ export { r as default } from './common/index-e66f0a38.js';
 
 
 
+var useEffect = react.useEffect;
 var useState = react.useState;
-export { useState };
+export { useEffect, useState };
