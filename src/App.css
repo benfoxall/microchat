@@ -18,3 +18,7 @@ footer {
   height: 1rem;
   padding: 0.5rem;
 }
+
+body .App .Toastify__toast {
+  min-height: 0 !important;
+}
