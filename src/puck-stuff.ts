@@ -24,6 +24,93 @@ export function requestDevice() {
 
 // other things
 
+function assert(value: any): asserts value {
+  if (!value) {
+    throw new Error('Assertation Error');
+  }
+}
+
+interface Sock {
+  send: (value: string) => Promise<void>;
+  listen: (cb: (value: string) => void) => void;
+}
+
+const socket = (
+  device: BluetoothDevice,
+  signal: AbortController['signal'],
+): Sock => {
+  connect();
+
+  let handler: (val: string) => Promise<void>;
+  const queue: string[] = [];
+  const listeners = new Set<(value: string) => void>();
+
+  return {
+    async send(val: string) {
+      if (handler) handler(val);
+      else queue.push(val);
+    },
+    listen(cb: (value: string) => void) {
+      listeners.add(cb);
+    },
+  };
+
+  async function connect() {
+    assert(device.gatt);
+
+    // await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const gatt = await device.gatt.connect();
+
+    const service = await gatt.getPrimaryService(NORDIC_SERVICE);
+
+    const tx = await service.getCharacteristic(NORDIC_TX);
+    const rx = await service.getCharacteristic(NORDIC_RX);
+
+    function valueChanged(event: any) {
+      const value = new TextDecoder().decode(event.target.value);
+
+      console.log('Socket: [RX] ↓ ', value);
+
+      for (const listener of listeners) {
+        listener(value);
+      }
+    }
+
+    rx.addEventListener('characteristicvaluechanged', valueChanged);
+    rx.startNotifications();
+
+    handler = async (value: string) => {
+      const u8 = new TextEncoder().encode(value);
+
+      console.log('Socket: [TX] ↑ ', value);
+
+      // todo sync
+      return tx.writeValue(u8);
+    };
+
+    console.log('socket: connected');
+
+    function disconnect() {
+      rx.removeEventListener('characteristicvaluechanged', valueChanged);
+      // rx.stopNotifications();
+      //
+      gatt.disconnect();
+      console.log('socket: disconnected');
+    }
+
+    if (signal.aborted) {
+      disconnect();
+    } else {
+      signal.addEventListener('abort', disconnect);
+    }
+
+    for (const item of queue) {
+      await handler(item);
+    }
+  }
+};
+
 class PuckSocket {
   private queue = Promise.resolve();
 
@@ -93,13 +180,15 @@ export interface IRepl {
 export const repl = (device: BluetoothDevice, opts?: REPLOptions): IRepl => {
   const signal = opts?.signal || new AbortController().signal;
 
-  const socket = new PuckSocket(device, signal);
+  // const socket = new PuckSocket(device, signal);
+
+  const sock = socket(device, signal);
 
   // todo -- init puck
 
   return {
     eval(code: string) {
-      socket.send(code + '\n');
+      sock.send(code + '\n');
 
       return Promise.resolve('Not implemented');
     },
