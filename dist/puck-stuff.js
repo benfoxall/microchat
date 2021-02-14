@@ -17,6 +17,63 @@ export function requestDevice() {
     optionalServices: [NORDIC_SERVICE]
   });
 }
+function assert(value) {
+  if (!value) {
+    throw new Error("Assertation Error");
+  }
+}
+const socket = (device, signal) => {
+  connect();
+  let handler;
+  const queue = [];
+  const listeners = new Set();
+  return {
+    async send(val) {
+      if (handler)
+        handler(val);
+      else
+        queue.push(val);
+    },
+    listen(cb) {
+      listeners.add(cb);
+    }
+  };
+  async function connect() {
+    assert(device.gatt);
+    const gatt = await device.gatt.connect();
+    const service = await gatt.getPrimaryService(NORDIC_SERVICE);
+    const tx = await service.getCharacteristic(NORDIC_TX);
+    const rx = await service.getCharacteristic(NORDIC_RX);
+    function valueChanged(event) {
+      const value = new TextDecoder().decode(event.target.value);
+      console.log("Socket: [RX] \u2193 ", value);
+      for (const listener of listeners) {
+        listener(value);
+      }
+    }
+    rx.addEventListener("characteristicvaluechanged", valueChanged);
+    rx.startNotifications();
+    handler = async (value) => {
+      const u8 = new TextEncoder().encode(value);
+      console.log("Socket: [TX] \u2191 ", value);
+      return tx.writeValue(u8);
+    };
+    console.log("socket: connected");
+    function disconnect() {
+      rx.removeEventListener("characteristicvaluechanged", valueChanged);
+      gatt.disconnect();
+      console.log("socket: disconnected");
+    }
+    if (signal.aborted) {
+      disconnect();
+    } else {
+      signal.addEventListener("abort", disconnect);
+    }
+    for (const item of queue) {
+      await handler(item);
+    }
+  }
+};
 class PuckSocket {
   constructor(device, signal) {
     this.queue = Promise.resolve();
@@ -60,10 +117,10 @@ class PuckSocket {
 }
 export const repl = (device, opts) => {
   const signal = opts?.signal || new AbortController().signal;
-  const socket = new PuckSocket(device, signal);
+  const sock = socket(device, signal);
   return {
     eval(code) {
-      socket.send(code + "\n");
+      sock.send(code + "\n");
       return Promise.resolve("Not implemented");
     }
   };
