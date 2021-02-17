@@ -30,10 +30,67 @@ function assert(value: any): asserts value {
   }
 }
 
+
+class Queue<T> implements AsyncIterable<T> {
+  private next: Promise<Queue<T>>;
+  private resolve: (value: Queue<T>) => void = () => { };
+
+  constructor(readonly value: T | null = null) {
+    this.next = new Promise(resolve => this.resolve = resolve)
+  }
+
+  add(value: T) {
+    const next = new Queue(value)
+    this.resolve(next);
+    this.resolve = next.resolve;
+  }
+
+  end() {
+    this.resolve(new Queue())
+  }
+
+  async*[Symbol.asyncIterator]() {
+    while (true) {
+      const current = await this.next;
+
+      this.next = current.next;
+
+      if (current.value === null) break
+
+      yield current.value
+    }
+  }
+}
+
+// class Deferable<T> {
+//   promise: Promise<T>;
+//   resolve: (val: T) => void = () => { };
+//   reject: (val: any) => void = () => { };
+//   constructor() {
+//     this.promise = new Promise<T>((resolve, reject) => {
+//       this.resolve = resolve;
+//       this.reject = reject;
+//     });
+//   }
+// }
+
+
 interface Sock {
   send: (value: string) => Promise<void>;
   listen: (cb: (value: string) => void) => void;
 }
+
+// const gattSocket = (
+//   server: BluetoothRemoteGATTServer,
+//   signal: AbortController['signal'],
+// ) => {
+//   // const connect = (async () => {
+//   //   const gatt = await server.connect();
+//   //   const service = await gatt.getPrimaryService(NORDIC_SERVICE);
+//   //   const tx = await service.getCharacteristic(NORDIC_TX);
+//   //   const rx = await service.getCharacteristic(NORDIC_RX);
+//   // })();
+// };
 
 const socket = (
   device: BluetoothDevice,
@@ -41,14 +98,13 @@ const socket = (
 ): Sock => {
   connect();
 
-  let handler: (val: string) => Promise<void>;
-  const queue: string[] = [];
+  const txq = new Queue<string>();
+
   const listeners = new Set<(value: string) => void>();
 
   return {
     async send(val: string) {
-      if (handler) handler(val);
-      else queue.push(val);
+      txq.add(val);
     },
     listen(cb: (value: string) => void) {
       listeners.add(cb);
@@ -57,8 +113,6 @@ const socket = (
 
   async function connect() {
     assert(device.gatt);
-
-    // await new Promise((resolve) => setTimeout(resolve, 500));
 
     const gatt = await device.gatt.connect();
 
@@ -80,15 +134,6 @@ const socket = (
     rx.addEventListener('characteristicvaluechanged', valueChanged);
     rx.startNotifications();
 
-    handler = async (value: string) => {
-      const u8 = new TextEncoder().encode(value);
-
-      console.log('Socket: [TX] ↑ ', value);
-
-      // todo sync
-      return tx.writeValue(u8);
-    };
-
     console.log('socket: connected');
 
     function disconnect() {
@@ -97,6 +142,8 @@ const socket = (
       //
       gatt.disconnect();
       console.log('socket: disconnected');
+
+      txq.end();
     }
 
     if (signal.aborted) {
@@ -105,69 +152,21 @@ const socket = (
       signal.addEventListener('abort', disconnect);
     }
 
-    for (const item of queue) {
-      await handler(item);
-    }
-  }
-};
-
-class PuckSocket {
-  private queue = Promise.resolve();
-
-  private gatt?: BluetoothRemoteGATTServer;
-  private rx?: BluetoothRemoteGATTCharacteristic;
-  private tx?: BluetoothRemoteGATTCharacteristic;
-
-  constructor(device: BluetoothDevice, signal: AbortController['signal']) {
-    this.connect(device).then(() => {
-      if (signal.aborted) this.disconnect();
-      else signal.addEventListener('abort', this.disconnect);
-    });
-  }
-
-  async send(value: string) {
-    await (this.queue = this.queue.then(() => {
+    for await (const value of txq) {
       const u8 = new TextEncoder().encode(value);
 
-      console.log('BLE: [TX] ↑ ', value, u8);
+      console.log('Socket: [TX] ↑ ', value);
 
-      return this.tx?.writeValue(u8);
-    }));
+      await tx.writeValue(u8);
+
+      console.log("written");
+
+    }
+
+    console.log("ENDED");
+
   }
-
-  private async connect(device: BluetoothDevice) {
-    this.gatt = await device.gatt?.connect();
-
-    const service = await this.gatt?.getPrimaryService(NORDIC_SERVICE);
-
-    this.tx = await service?.getCharacteristic(NORDIC_TX)!;
-
-    this.rx = await service?.getCharacteristic(NORDIC_RX)!;
-    this.rx.startNotifications();
-    this.rx.addEventListener('characteristicvaluechanged', this.recieve);
-
-    console.log('BLE: connected...', this);
-  }
-
-  private recieve = (event: any) => {
-    var dataview = event.target!.value;
-    const str = new TextDecoder().decode(dataview);
-
-    console.log('BLE: [RX] ↓ ', str);
-  };
-
-  private async disconnect() {
-    this.gatt?.disconnect();
-    this.rx?.removeEventListener('characteristicvaluechanged', this.recieve);
-    this.rx?.stopNotifications();
-
-    delete this.gatt;
-    delete this.tx;
-    delete this.rx;
-
-    console.log('BLE: disconnected...', this);
-  }
-}
+};
 
 interface REPLOptions {
   signal?: AbortController['signal'];
@@ -179,8 +178,6 @@ export interface IRepl {
 
 export const repl = (device: BluetoothDevice, opts?: REPLOptions): IRepl => {
   const signal = opts?.signal || new AbortController().signal;
-
-  // const socket = new PuckSocket(device, signal);
 
   const sock = socket(device, signal);
 
