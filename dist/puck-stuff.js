@@ -22,17 +22,38 @@ function assert(value) {
     throw new Error("Assertation Error");
   }
 }
+class Queue {
+  constructor(value = null) {
+    this.value = value;
+    this.resolve = () => {
+    };
+    this.next = new Promise((resolve) => this.resolve = resolve);
+  }
+  add(value) {
+    const next = new Queue(value);
+    this.resolve(next);
+    this.resolve = next.resolve;
+  }
+  end() {
+    this.resolve(new Queue());
+  }
+  async *[Symbol.asyncIterator]() {
+    while (true) {
+      const current = await this.next;
+      this.next = current.next;
+      if (current.value === null)
+        break;
+      yield current.value;
+    }
+  }
+}
 const socket = (device, signal) => {
   connect();
-  let handler;
-  const queue = [];
+  const txq = new Queue();
   const listeners = new Set();
   return {
     async send(val) {
-      if (handler)
-        handler(val);
-      else
-        queue.push(val);
+      txq.add(val);
     },
     listen(cb) {
       listeners.add(cb);
@@ -53,68 +74,27 @@ const socket = (device, signal) => {
     }
     rx.addEventListener("characteristicvaluechanged", valueChanged);
     rx.startNotifications();
-    handler = async (value) => {
-      const u8 = new TextEncoder().encode(value);
-      console.log("Socket: [TX] \u2191 ", value);
-      return tx.writeValue(u8);
-    };
     console.log("socket: connected");
     function disconnect() {
       rx.removeEventListener("characteristicvaluechanged", valueChanged);
       gatt.disconnect();
       console.log("socket: disconnected");
+      txq.end();
     }
     if (signal.aborted) {
       disconnect();
     } else {
       signal.addEventListener("abort", disconnect);
     }
-    for (const item of queue) {
-      await handler(item);
+    for await (const value of txq) {
+      const u8 = new TextEncoder().encode(value);
+      console.log("Socket: [TX] \u2191 ", value);
+      await tx.writeValue(u8);
+      console.log("written");
     }
+    console.log("ENDED");
   }
 };
-class PuckSocket {
-  constructor(device, signal) {
-    this.queue = Promise.resolve();
-    this.recieve = (event) => {
-      var dataview = event.target.value;
-      const str = new TextDecoder().decode(dataview);
-      console.log("BLE: [RX] \u2193 ", str);
-    };
-    this.connect(device).then(() => {
-      if (signal.aborted)
-        this.disconnect();
-      else
-        signal.addEventListener("abort", this.disconnect);
-    });
-  }
-  async send(value) {
-    await (this.queue = this.queue.then(() => {
-      const u8 = new TextEncoder().encode(value);
-      console.log("BLE: [TX] \u2191 ", value, u8);
-      return this.tx?.writeValue(u8);
-    }));
-  }
-  async connect(device) {
-    this.gatt = await device.gatt?.connect();
-    const service = await this.gatt?.getPrimaryService(NORDIC_SERVICE);
-    this.tx = await service?.getCharacteristic(NORDIC_TX);
-    this.rx = await service?.getCharacteristic(NORDIC_RX);
-    this.rx.startNotifications();
-    this.rx.addEventListener("characteristicvaluechanged", this.recieve);
-    console.log("BLE: connected...", this);
-  }
-  async disconnect() {
-    this.gatt?.disconnect();
-    this.rx?.removeEventListener("characteristicvaluechanged", this.recieve);
-    this.rx?.stopNotifications();
-    delete this.gatt;
-    delete this.tx;
-    delete this.rx;
-    console.log("BLE: disconnected...", this);
-  }
-}
 export const repl = (device, opts) => {
   const signal = opts?.signal || new AbortController().signal;
   const sock = socket(device, signal);
