@@ -92,81 +92,77 @@ interface Sock {
 //   // })();
 // };
 
-const socket = (
-  device: BluetoothDevice,
-  signal: AbortController['signal'],
-): Sock => {
-  connect();
+class Socket {
+  private txq = new Queue<string>();
+  private listeners = new Set<(value: string) => void>();
 
-  const txq = new Queue<string>();
+  constructor(private device: BluetoothDevice, private signal: AbortController['signal']) {
 
-  const listeners = new Set<(value: string) => void>();
+    (async () => {
+      assert(this.device.gatt);
 
-  return {
-    async send(val: string) {
-      txq.add(val);
-    },
-    listen(cb: (value: string) => void) {
-      listeners.add(cb);
-    },
-  };
+      const gatt = await this.device.gatt.connect();
 
-  async function connect() {
-    assert(device.gatt);
+      const service = await gatt.getPrimaryService(NORDIC_SERVICE);
 
-    const gatt = await device.gatt.connect();
+      const tx = await service.getCharacteristic(NORDIC_TX);
+      const rx = await service.getCharacteristic(NORDIC_RX);
 
-    const service = await gatt.getPrimaryService(NORDIC_SERVICE);
+      rx.addEventListener('characteristicvaluechanged', this.handleRX);
+      rx.startNotifications();
 
-    const tx = await service.getCharacteristic(NORDIC_TX);
-    const rx = await service.getCharacteristic(NORDIC_RX);
+      console.log('socket: connected');
 
-    function valueChanged(event: any) {
-      const value = new TextDecoder().decode(event.target.value);
+      for await (const value of this.txq) {
+        const u8 = new TextEncoder().encode(value);
 
-      console.log('Socket: [RX] ↓ ', value);
+        console.log('Socket: [TX] ↑ ', value);
 
-      for (const listener of listeners) {
-        listener(value);
+        await tx.writeValue(u8);
+
+        console.log("written");
+
       }
-    }
 
-    rx.addEventListener('characteristicvaluechanged', valueChanged);
-    rx.startNotifications();
+      rx.removeEventListener('characteristicvaluechanged', this.handleRX);
+      rx.stopNotifications();
 
-    console.log('socket: connected');
-
-    function disconnect() {
-      rx.removeEventListener('characteristicvaluechanged', valueChanged);
-      // rx.stopNotifications();
-      //
-      gatt.disconnect();
       console.log('socket: disconnected');
+    })();
 
-      txq.end();
-    }
+
 
     if (signal.aborted) {
-      disconnect();
+      this.disconnect()
     } else {
-      signal.addEventListener('abort', disconnect);
+      signal.addEventListener('abort', () => this.disconnect());
     }
-
-    for await (const value of txq) {
-      const u8 = new TextEncoder().encode(value);
-
-      console.log('Socket: [TX] ↑ ', value);
-
-      await tx.writeValue(u8);
-
-      console.log("written");
-
-    }
-
-    console.log("ENDED");
-
   }
-};
+
+
+  private handleRX = (event: any) => {
+    const value = new TextDecoder().decode(event.target.value);
+
+    console.log('Socket: [RX] ↓ ', value);
+
+    for (const listener of this.listeners) {
+      listener(value);
+    }
+  }
+
+  send(val: string) {
+    this.txq.add(val);
+  }
+
+  listen(cb: (value: string) => void) {
+    this.listeners.add(cb);
+  }
+
+  private disconnect() {
+    this.txq.end()
+  }
+}
+
 
 interface REPLOptions {
   signal?: AbortController['signal'];
@@ -179,7 +175,7 @@ export interface IRepl {
 export const repl = (device: BluetoothDevice, opts?: REPLOptions): IRepl => {
   const signal = opts?.signal || new AbortController().signal;
 
-  const sock = socket(device, signal);
+  const sock = new Socket(device, signal)
 
   // todo -- init puck
 
