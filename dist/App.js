@@ -1,7 +1,7 @@
 import React, {useState} from "../_snowpack/pkg/react.js";
+import "../_snowpack/pkg/react-toastify/dist/ReactToastify.css.proxy.js";
 import {ToastContainer} from "../_snowpack/pkg/react-toastify.js";
 import {HashRouter, Route, Switch} from "../_snowpack/pkg/react-router-dom.js";
-import "../_snowpack/pkg/react-toastify/dist/ReactToastify.css.proxy.js";
 import {DeviceList} from "./DeviceList.js";
 import {Device, DEVICE_ROUTE} from "./Device.js";
 function App({}) {

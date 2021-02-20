@@ -29,11 +29,15 @@ export const Device = ({devices, setDevices}) => {
       const device2 = await requestDeviceByName(route.params.name);
       setDevices((prev) => prev.concat(device2));
     };
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Link, {
+    return /* @__PURE__ */ React.createElement("div", {
+      className: "m-4 p-4 bg-yellow-400 rounded-md shadow-lg"
+    }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Link, {
+      className: "p-4 hover:text-blue-600",
       to: "/"
-    }, "Back"), /* @__PURE__ */ React.createElement("h2", null, decodeURIComponent(route.params.name)), /* @__PURE__ */ React.createElement("h3", null, "not connected"), /* @__PURE__ */ React.createElement("button", {
+    }, "\u2190"), "connection lost"), /* @__PURE__ */ React.createElement("button", {
+      className: "m-4 text-xl hover:text-blue-600",
       onClick: connect
-    }, "Connect"));
+    }, "Reconnect ", decodeURIComponent(route.params.name), " "));
   }
   return /* @__PURE__ */ React.createElement("section", {
     className: "h-full flex flex-col"
