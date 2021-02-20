@@ -25,7 +25,7 @@ export const Device: FunctionComponent<IProps> = ({ devices }) => {
     (device) => btoa(device.id) === route?.params.deviceId,
   );
 
-  const { socket, rx, send } = useSocket(device);
+  const { rx, send } = useSocket(device);
 
   if (!device) {
     console.log(devices, route);
@@ -43,9 +43,7 @@ export const Device: FunctionComponent<IProps> = ({ devices }) => {
         {' '}
         <Link to="/">Back</Link> → {device.name}
       </h3>
-      <main>
-        <pre>{rx}</pre>
-      </main>
+      <main>{rx}</main>
       <footer>
         <CodeInput onChange={send} />
       </footer>

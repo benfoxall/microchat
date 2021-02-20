@@ -47,3 +47,10 @@ body .App .Toastify__toast {
   display: flex;
   flex-direction: column;
 }
+
+.Device main {
+  white-space: pre;
+  font-family: monospace;
+  overflow: scroll;
+  flex: 1;
+}
