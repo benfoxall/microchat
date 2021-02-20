@@ -23,23 +23,30 @@ export const DeviceList = ({
     e.preventDefault();
     onChange((devices) => devices.filter((target) => device !== target));
   };
-  return /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("ul", null, value.map((device) => /* @__PURE__ */ React.createElement(NavLink, {
-    to: generatePath(DEVICE_ROUTE, {
-      id: device.id,
-      name: device.name || "?"
-    }),
-    key: device.id
-  }, /* @__PURE__ */ React.createElement("li", {
-    className: "flex items-center justify-between text-green-200"
-  }, /* @__PURE__ */ React.createElement("div", {
-    className: "rounded-full bg-gray-800 w-12 h-12 hover:bg-gray-700 transition shadow-md m-5"
-  }), /* @__PURE__ */ React.createElement("h2", {
-    className: " flex-1"
-  }, device.name), /* @__PURE__ */ React.createElement("button", {
-    className: "m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg",
-    onClick: remove(device)
-  }, "\xD7"))))), /* @__PURE__ */ React.createElement("button", {
+  return /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("ul", null, value.map((device) => /* @__PURE__ */ React.createElement(DeviceListItem, {
+    key: device.id,
+    device
+  }))), /* @__PURE__ */ React.createElement("button", {
     className: "rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-4 right-4 text-white",
     onClick: addDevice
   }, "+"));
+};
+const DeviceListItem = ({device}) => {
+  const link = generatePath(DEVICE_ROUTE, {
+    id: device.id,
+    name: device.name || "?"
+  });
+  return /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement(NavLink, {
+    className: "flex items-center text-gray-900 hover:bg-yellow-400",
+    to: link,
+    key: device.id
+  }, /* @__PURE__ */ React.createElement("div", {
+    className: "rounded-full bg-gray-800 w-10 h-10 hover:bg-gray-700 transition shadow-md m-5"
+  }), /* @__PURE__ */ React.createElement("div", {
+    className: "flex-1 font-monospace"
+  }, /* @__PURE__ */ React.createElement("h2", {
+    className: "text-lg"
+  }, device.name), /* @__PURE__ */ React.createElement("h3", {
+    className: "text-gray-800 text-sm"
+  }, "-"))));
 };
