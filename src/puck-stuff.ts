@@ -30,47 +30,48 @@ function assert(value: any): asserts value {
   }
 }
 
-
 class Queue<T> implements AsyncIterable<T> {
   private next: Promise<Queue<T>>;
-  private resolve: (value: Queue<T>) => void = () => { };
+  private resolve: (value: Queue<T>) => void = () => {};
 
   constructor(readonly value: T | null = null) {
-    this.next = new Promise(resolve => this.resolve = resolve)
+    this.next = new Promise((resolve) => (this.resolve = resolve));
   }
 
   add(value: T) {
-    const next = new Queue(value)
+    const next = new Queue(value);
     this.resolve(next);
     this.resolve = next.resolve;
   }
 
   end() {
-    this.resolve(new Queue())
+    this.resolve(new Queue());
   }
 
-  async*[Symbol.asyncIterator]() {
+  async *[Symbol.asyncIterator]() {
     while (true) {
       const current = await this.next;
 
       this.next = current.next;
 
-      if (current.value === null) break
+      if (current.value === null) break;
 
-      yield current.value
+      yield current.value;
     }
   }
 }
 
-
 class Socket extends Queue<string> {
   private listeners = new Set<(value: string) => void>();
 
-  constructor(private device: BluetoothDevice, signal: AbortController['signal']) {
+  constructor(
+    private device: BluetoothDevice,
+    signal: AbortController['signal'],
+  ) {
     super();
 
     if (signal.aborted) {
-      this.disconnect()
+      this.disconnect();
     } else {
       signal.addEventListener('abort', () => this.disconnect());
     }
@@ -93,7 +94,7 @@ class Socket extends Queue<string> {
         for (const listener of this.listeners) {
           listener(value);
         }
-      }
+      };
 
       rx.addEventListener('characteristicvaluechanged', onValueChanged);
       rx.startNotifications();
@@ -124,10 +125,9 @@ class Socket extends Queue<string> {
   }
 
   disconnect() {
-    this.end()
+    this.end();
   }
 }
-
 
 interface REPLOptions {
   signal?: AbortController['signal'];
@@ -140,7 +140,7 @@ export interface IRepl {
 export const repl = (device: BluetoothDevice, opts?: REPLOptions): IRepl => {
   const signal = opts?.signal || new AbortController().signal;
 
-  const sock = new Socket(device, signal)
+  const sock = new Socket(device, signal);
 
   // todo -- init puck
 
