@@ -24,7 +24,10 @@ export const Devices = ({
   return /* @__PURE__ */ React.createElement("section", {
     className: "DeviceList"
   }, /* @__PURE__ */ React.createElement("ul", null, value.map((device) => /* @__PURE__ */ React.createElement(NavLink, {
-    to: generatePath(DEVICE_ROUTE, {deviceId: btoa(device.id)}),
+    to: generatePath(DEVICE_ROUTE, {
+      id: device.id,
+      name: device.name || "?"
+    }),
     key: device.id
   }, /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement("h2", null, device.name, /* @__PURE__ */ React.createElement("button", {
     onClick: remove(device)

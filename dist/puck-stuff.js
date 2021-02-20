@@ -17,7 +17,13 @@ export function requestDevice() {
     optionalServices: [NORDIC_SERVICE]
   });
 }
-function assert(value) {
+export function requestDeviceByName(name) {
+  return navigator.bluetooth.requestDevice({
+    filters: [{name}],
+    optionalServices: [NORDIC_SERVICE]
+  });
+}
+export function assert(value) {
   if (!value) {
     throw new Error("Assertation Error");
   }

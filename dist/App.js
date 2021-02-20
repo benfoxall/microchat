@@ -17,7 +17,8 @@ function App({}) {
   })), /* @__PURE__ */ React.createElement(Switch, null, /* @__PURE__ */ React.createElement(Route, {
     path: "/\u2192/:deviceId+"
   }, /* @__PURE__ */ React.createElement(Device, {
-    devices
+    devices,
+    setDevices
   })))), /* @__PURE__ */ React.createElement(ToastContainer, {
     hideProgressBar: true
   }));
