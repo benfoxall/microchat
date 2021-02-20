@@ -60,11 +60,14 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
     };
 
     return (
-      <div>
-        <Link to="/">Back</Link>
-        <h2>{decodeURIComponent(route.params.name)}</h2>
-        <h3>not connected</h3>
-        <button onClick={connect}>Connect</button>
+      <div className="m-4 p-4 bg-yellow-400 rounded-md shadow-lg">
+        <div>
+          <Link className="p-4 hover:text-blue-600" to="/">←</Link>
+          connection lost
+        </div>
+
+
+        <button className="m-4 text-xl hover:text-blue-600" onClick={connect}>Reconnect {decodeURIComponent(route.params.name)} </button>
       </div>
     );
   }
