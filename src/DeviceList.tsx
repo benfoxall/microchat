@@ -54,20 +54,27 @@ const DeviceListItem: FunctionComponent<{ device: BluetoothDevice }> = ({ device
     name: device.name || '?',
   })
 
-  return <NavLink
-    to={link}
-    key={device.id}
-  >
-    <li className="flex items-center justify-between text-gray-900">
+  return <li>
+    <NavLink
+      className="flex items-center text-gray-900 hover:bg-yellow-400"
+      to={link}
+      key={device.id}
+    >
 
       <div className="rounded-full bg-gray-800 w-10 h-10 hover:bg-gray-700 transition shadow-md m-5" ></div>
 
-      <h2 className="flex-1 text-lg font-monospace">
-        {device.name}
-      </h2>
+      <div className="flex-1 font-monospace">
+        <h2 className="text-lg">
+          {device.name}
+        </h2>
+        <h3 className="text-gray-800 text-sm">
+          -
+        </h3>
+      </div>
+
 
       {/* <button className="m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg">&times;</button> */}
-    </li>
-  </NavLink>
+    </NavLink>
+  </li>
 
 }
