@@ -1,6 +1,8 @@
 import React, { Dispatch, FunctionComponent, SetStateAction } from 'react';
 import { requestDevice } from './puck-stuff';
 import { toast } from 'react-toastify';
+import { generatePath, NavLink } from 'react-router-dom';
+import { DEVICE_ROUTE } from './Device';
 
 interface IDevicesProps {
   value: BluetoothDevice[];
@@ -33,11 +35,18 @@ export const Devices: FunctionComponent<IDevicesProps> = ({
     <section className="DeviceList">
       <ul>
         {value.map((device) => (
-          <li key={device.id}>
-            <h2>{device.name}</h2>
-            <h3>{device.id}</h3>
-            <button onClick={remove(device)}>remove</button>
-          </li>
+          <NavLink
+            to={generatePath(DEVICE_ROUTE, { deviceId: btoa(device.id) })}
+            key={device.id}
+          >
+            <li>
+              <h2>
+                {device.name}
+
+                <button onClick={remove(device)}>&times;</button>
+              </h2>
+            </li>
+          </NavLink>
         ))}
       </ul>
       <button onClick={addDevice}>Add</button>

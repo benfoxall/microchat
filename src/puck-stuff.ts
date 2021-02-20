@@ -61,7 +61,7 @@ class Queue<T> implements AsyncIterable<T> {
   }
 }
 
-class Socket extends Queue<string> {
+export class Socket extends Queue<string> {
   private listeners = new Set<(value: string) => void>();
 
   constructor(
