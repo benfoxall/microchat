@@ -36,26 +36,7 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
   return (
     <section>
       <ul>
-        {value.map((device) => (
-          <NavLink
-            to={generatePath(DEVICE_ROUTE, {
-              id: device.id,
-              name: device.name || '?',
-            })}
-            key={device.id}
-          >
-            <li className="flex items-center justify-between text-green-200">
-
-              <div className="rounded-full bg-gray-800 w-12 h-12 hover:bg-gray-700 transition shadow-md m-5" ></div>
-
-              <h2 className=" flex-1">
-                {device.name}
-              </h2>
-
-              <button className="m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg" onClick={remove(device)}>&times;</button>
-            </li>
-          </NavLink>
-        ))}
+        {value.map((device) => <DeviceListItem key={device.id} device={device} />)}
       </ul>
       <button className="rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-4 right-4 text-white" onClick={addDevice}>
         +
@@ -63,3 +44,30 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
     </section>
   );
 };
+
+
+const DeviceListItem: FunctionComponent<{ device: BluetoothDevice }> = ({ device }) => {
+
+
+  const link = generatePath(DEVICE_ROUTE, {
+    id: device.id,
+    name: device.name || '?',
+  })
+
+  return <NavLink
+    to={link}
+    key={device.id}
+  >
+    <li className="flex items-center justify-between text-gray-900">
+
+      <div className="rounded-full bg-gray-800 w-10 h-10 hover:bg-gray-700 transition shadow-md m-5" ></div>
+
+      <h2 className="flex-1 text-lg font-monospace">
+        {device.name}
+      </h2>
+
+      {/* <button className="m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg">&times;</button> */}
+    </li>
+  </NavLink>
+
+}
