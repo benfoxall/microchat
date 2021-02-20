@@ -23,3 +23,16 @@ Your app is ready to be deployed!
 
 Launches the application test runner.
 Run with the `--watch` flag (`npm test -- --watch`) to run in interactive watch mode.
+
+---
+
+## Tailwind notes
+
+- install is one-off
+- dist purging
+- intellisense
+
+Problems:
+
+- revving on styles.css
+- component docs are paid for

@@ -2,7 +2,6 @@ import { assert } from 'chai';
 import React, {
   FormEventHandler,
   FunctionComponent,
-  SyntheticEvent,
 } from 'react';
 
 interface Props {
@@ -20,9 +19,9 @@ export const CodeInput: FunctionComponent<Props> = ({ onChange }) => {
   };
 
   return (
-    <form className="CodeInput" onSubmit={submit}>
-      <input type="text" name="code"></input>
-      <input type="submit" value="send" />
+    <form className="flex right-0" onSubmit={submit}>
+      <input type="text" name="code" className="flex-1 p-4"></input>
+      <input type="submit" value="send" className="p-4" />
     </form>
   );
 };

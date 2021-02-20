@@ -1,4 +1,4 @@
-import React, { Dispatch, FunctionComponent, SetStateAction } from 'react';
+import React, { Dispatch, FunctionComponent, SetStateAction, SyntheticEvent } from 'react';
 import { requestDevice } from './puck-stuff';
 import { toast } from 'react-toastify';
 import { generatePath, NavLink } from 'react-router-dom';
@@ -9,7 +9,7 @@ interface IDevicesProps {
   onChange: Dispatch<SetStateAction<BluetoothDevice[]>>;
 }
 
-export const Devices: FunctionComponent<IDevicesProps> = ({
+export const DeviceList: FunctionComponent<IDevicesProps> = ({
   value,
   onChange,
 }) => {
@@ -24,15 +24,17 @@ export const Devices: FunctionComponent<IDevicesProps> = ({
       }
     } catch (e) {
       console.warn(e);
-      toast.warn('Not added');
     }
   };
 
-  const remove = (device: BluetoothDevice) => () =>
+  const remove = (device: BluetoothDevice) => (e: SyntheticEvent) => {
+    e.preventDefault()
     onChange((devices) => devices.filter((target) => device !== target));
+  }
+
 
   return (
-    <section className="DeviceList">
+    <section>
       <ul>
         {value.map((device) => (
           <NavLink
@@ -42,17 +44,22 @@ export const Devices: FunctionComponent<IDevicesProps> = ({
             })}
             key={device.id}
           >
-            <li>
-              <h2>
-                {device.name}
+            <li className="flex items-center justify-between text-green-200">
 
-                <button onClick={remove(device)}>&times;</button>
+              <div className="rounded-full bg-gray-800 w-12 h-12 hover:bg-gray-700 transition shadow-md m-5" ></div>
+
+              <h2 className=" flex-1">
+                {device.name}
               </h2>
+
+              <button className="m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg" onClick={remove(device)}>&times;</button>
             </li>
           </NavLink>
         ))}
       </ul>
-      <button onClick={addDevice}>Add</button>
+      <button className="rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-4 right-4 text-white" onClick={addDevice}>
+        +
+      </button>
     </section>
   );
 };

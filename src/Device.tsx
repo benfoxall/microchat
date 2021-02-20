@@ -1,9 +1,11 @@
+import { use } from 'chai';
 import React, {
   Dispatch,
   FunctionComponent,
   SetStateAction,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
@@ -24,6 +26,8 @@ interface IProps {
 export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
 
+
+
   assert(route);
 
   // todo: request if not connected
@@ -32,6 +36,19 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   );
 
   const { rx, send } = useSocket(device);
+
+  const main = useRef<HTMLElement>(null)
+
+
+  useEffect(() => {
+    if (main.current) {
+      main.current.scrollTo({
+        top: main.current.scrollHeight - main.current.clientHeight,
+        behavior: 'smooth'
+      });
+    }
+
+  }, [rx])
 
   if (!device) {
     console.log(devices, route);
@@ -53,12 +70,18 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   }
 
   return (
-    <section className="Device">
-      <h3>
-        {' '}
-        <Link to="/">Back</Link> → {device.name}
-      </h3>
-      <main>{rx}</main>
+    <section className="h-full flex flex-col">
+      <header className="bg-yellow-400 p-4 flex items-center">
+        <Link className="px-4 py-2 hover:text-blue-600" to="/">←</Link>
+
+        <div className="rounded-full bg-gray-800 w-7 h-7 transition shadow-md" ></div>
+
+        <p className="px-4 text-xl font-mono" >{device.name}</p>
+      </header>
+
+      <main ref={main} className="flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll">
+        {rx}
+      </main>
       <footer>
         <CodeInput onChange={send} />
       </footer>
