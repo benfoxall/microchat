@@ -1,6 +1,8 @@
 import React from "../_snowpack/pkg/react.js";
 import {requestDevice} from "./puck-stuff.js";
 import {toast} from "../_snowpack/pkg/react-toastify.js";
+import {generatePath, NavLink} from "../_snowpack/pkg/react-router-dom.js";
+import {DEVICE_ROUTE} from "./Device.js";
 export const Devices = ({
   value,
   onChange
@@ -21,11 +23,12 @@ export const Devices = ({
   const remove = (device) => () => onChange((devices) => devices.filter((target) => device !== target));
   return /* @__PURE__ */ React.createElement("section", {
     className: "DeviceList"
-  }, /* @__PURE__ */ React.createElement("ul", null, value.map((device) => /* @__PURE__ */ React.createElement("li", {
+  }, /* @__PURE__ */ React.createElement("ul", null, value.map((device) => /* @__PURE__ */ React.createElement(NavLink, {
+    to: generatePath(DEVICE_ROUTE, {deviceId: btoa(device.id)}),
     key: device.id
-  }, /* @__PURE__ */ React.createElement("h2", null, device.name), /* @__PURE__ */ React.createElement("h3", null, device.id), /* @__PURE__ */ React.createElement("button", {
+  }, /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement("h2", null, device.name, /* @__PURE__ */ React.createElement("button", {
     onClick: remove(device)
-  }, "remove")))), /* @__PURE__ */ React.createElement("button", {
+  }, "\xD7")))))), /* @__PURE__ */ React.createElement("button", {
     onClick: addDevice
   }, "Add"));
 };

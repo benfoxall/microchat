@@ -47,57 +47,55 @@ class Queue {
     }
   }
 }
-const socket = (device, signal) => {
-  connect();
-  const txq = new Queue();
-  const listeners = new Set();
-  return {
-    async send(val) {
-      txq.add(val);
-    },
-    listen(cb) {
-      listeners.add(cb);
-    }
-  };
-  async function connect() {
-    assert(device.gatt);
-    const gatt = await device.gatt.connect();
-    const service = await gatt.getPrimaryService(NORDIC_SERVICE);
-    const tx = await service.getCharacteristic(NORDIC_TX);
-    const rx = await service.getCharacteristic(NORDIC_RX);
-    function valueChanged(event) {
-      const value = new TextDecoder().decode(event.target.value);
-      console.log("Socket: [RX] \u2193 ", value);
-      for (const listener of listeners) {
-        listener(value);
-      }
-    }
-    rx.addEventListener("characteristicvaluechanged", valueChanged);
-    rx.startNotifications();
-    console.log("socket: connected");
-    function disconnect() {
-      rx.removeEventListener("characteristicvaluechanged", valueChanged);
-      gatt.disconnect();
-      console.log("socket: disconnected");
-      txq.end();
-    }
+export class Socket extends Queue {
+  constructor(device, signal) {
+    super();
+    this.device = device;
+    this.listeners = new Set();
     if (signal.aborted) {
-      disconnect();
+      this.disconnect();
     } else {
-      signal.addEventListener("abort", disconnect);
+      signal.addEventListener("abort", () => this.disconnect());
     }
-    for await (const value of txq) {
-      const u8 = new TextEncoder().encode(value);
-      console.log("Socket: [TX] \u2191 ", value);
-      await tx.writeValue(u8);
-      console.log("written");
-    }
-    console.log("ENDED");
+    (async () => {
+      assert(this.device.gatt);
+      const gatt = await this.device.gatt.connect();
+      const service = await gatt.getPrimaryService(NORDIC_SERVICE);
+      const tx = await service.getCharacteristic(NORDIC_TX);
+      const rx = await service.getCharacteristic(NORDIC_RX);
+      const onValueChanged = (event) => {
+        const value = new TextDecoder().decode(event.target.value);
+        console.log("Socket: [RX] \u2193 ", value);
+        for (const listener of this.listeners) {
+          listener(value);
+        }
+      };
+      rx.addEventListener("characteristicvaluechanged", onValueChanged);
+      rx.startNotifications();
+      console.log("socket: connected");
+      for await (const value of this) {
+        const u8 = new TextEncoder().encode(value);
+        console.log("Socket: [TX] \u2191 ", value);
+        await tx.writeValue(u8);
+      }
+      rx.removeEventListener("characteristicvaluechanged", onValueChanged);
+      rx.stopNotifications();
+      console.log("socket: disconnected");
+    })();
   }
-};
+  send(val) {
+    this.add(val);
+  }
+  listen(cb) {
+    this.listeners.add(cb);
+  }
+  disconnect() {
+    this.end();
+  }
+}
 export const repl = (device, opts) => {
   const signal = opts?.signal || new AbortController().signal;
-  const sock = socket(device, signal);
+  const sock = new Socket(device, signal);
   return {
     eval(code) {
       sock.send(code + "\n");

@@ -2,6 +2,7 @@
   "imports": {
     "react": "./react.js",
     "react-dom": "./react-dom.js",
+    "react-router-dom": "./react-router-dom.js",
     "react-toastify": "./react-toastify.js",
     "react-toastify/dist/ReactToastify.css": "./react-toastify/dist/ReactToastify.css"
   }
