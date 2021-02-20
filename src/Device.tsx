@@ -2,7 +2,6 @@ import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
@@ -27,8 +26,6 @@ export const Device: FunctionComponent<IProps> = ({ devices }) => {
   );
 
   const { socket, rx, send } = useSocket(device);
-
-  const run = () => {};
 
   if (!device) {
     console.log(devices, route);
@@ -71,27 +68,23 @@ const useSocket = (device?: BluetoothDevice) => {
 
     const controller = new AbortController();
 
-    const value = new Socket(device, controller.signal);
-
     setRx('');
 
-    value.listen((v) => {
-      setRx((prev) => prev + v);
-    });
+    const t = setTimeout(() => {
+      const value = new Socket(device, controller.signal);
 
-    setSocket(value);
+      value.listen((v) => {
+        setRx((prev) => prev + v);
+      });
 
-    return () => controller.abort();
+      setSocket(value);
+    }, 300);
+
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
   }, [device]);
 
   return { socket, rx, send };
 };
-
-// const SocketCtx = React.createContext({ connected: false });
-
-// const Connect: FunctionComponent<{ device?: BluetoothDevice }> = ({
-//   device,
-//   children,
-// }) => {
-//   return <>{children}</>;
-// };
