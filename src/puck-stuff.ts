@@ -63,11 +63,17 @@ class Queue<T> implements AsyncIterable<T> {
 }
 
 
-class Socket {
-  private txq = new Queue<string>();
+class Socket extends Queue<string> {
   private listeners = new Set<(value: string) => void>();
 
   constructor(private device: BluetoothDevice, signal: AbortController['signal']) {
+    super();
+
+    if (signal.aborted) {
+      this.disconnect()
+    } else {
+      signal.addEventListener('abort', () => this.disconnect());
+    }
 
     (async () => {
       assert(this.device.gatt);
@@ -79,7 +85,7 @@ class Socket {
       const tx = await service.getCharacteristic(NORDIC_TX);
       const rx = await service.getCharacteristic(NORDIC_RX);
 
-      const handleRX = (event: any) => {
+      const onValueChanged = (event: any) => {
         const value = new TextDecoder().decode(event.target.value);
 
         console.log('Socket: [RX] ↓ ', value);
@@ -89,12 +95,12 @@ class Socket {
         }
       }
 
-      rx.addEventListener('characteristicvaluechanged', handleRX);
+      rx.addEventListener('characteristicvaluechanged', onValueChanged);
       rx.startNotifications();
 
       console.log('socket: connected');
 
-      for await (const value of this.txq) {
+      for await (const value of this) {
         const u8 = new TextEncoder().encode(value);
 
         console.log('Socket: [TX] ↑ ', value);
@@ -102,23 +108,15 @@ class Socket {
         await tx.writeValue(u8);
       }
 
-      rx.removeEventListener('characteristicvaluechanged', handleRX);
+      rx.removeEventListener('characteristicvaluechanged', onValueChanged);
       rx.stopNotifications();
 
       console.log('socket: disconnected');
     })();
-
-
-
-    if (signal.aborted) {
-      this.disconnect()
-    } else {
-      signal.addEventListener('abort', () => this.disconnect());
-    }
   }
 
   send(val: string) {
-    this.txq.add(val);
+    this.add(val);
   }
 
   listen(cb: (value: string) => void) {
@@ -126,7 +124,7 @@ class Socket {
   }
 
   disconnect() {
-    this.txq.end()
+    this.end()
   }
 }
 
