@@ -48,7 +48,7 @@ function App({}: AppProps) {
 
         <Switch>
           <Route path="/→/:deviceId+">
-            <Device devices={devices} />
+            <Device devices={devices} setDevices={setDevices} />
           </Route>
         </Switch>
       </div>

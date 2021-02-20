@@ -22,9 +22,16 @@ export function requestDevice() {
   });
 }
 
+export function requestDeviceByName(name: string) {
+  return navigator.bluetooth.requestDevice({
+    filters: [{ name }],
+    optionalServices: [NORDIC_SERVICE],
+  });
+}
+
 // other things
 
-function assert(value: any): asserts value {
+export function assert(value: any): asserts value {
   if (!value) {
     throw new Error('Assertation Error');
   }

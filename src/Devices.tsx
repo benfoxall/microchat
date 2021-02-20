@@ -36,7 +36,10 @@ export const Devices: FunctionComponent<IDevicesProps> = ({
       <ul>
         {value.map((device) => (
           <NavLink
-            to={generatePath(DEVICE_ROUTE, { deviceId: btoa(device.id) })}
+            to={generatePath(DEVICE_ROUTE, {
+              id: device.id,
+              name: device.name || '?',
+            })}
             key={device.id}
           >
             <li>

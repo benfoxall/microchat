@@ -1,39 +1,54 @@
 import React, {
+  Dispatch,
   FunctionComponent,
+  SetStateAction,
   useCallback,
   useEffect,
   useState,
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
-import { Socket } from './puck-stuff';
+import { Socket, assert, requestDeviceByName } from './puck-stuff';
 
-export const DEVICE_ROUTE = '/→/:deviceId';
+export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
-  deviceId: string;
+  id: string;
+  name: string;
 }
 
 interface IProps {
   devices: BluetoothDevice[];
+  setDevices: Dispatch<SetStateAction<BluetoothDevice[]>>;
 }
 
-export const Device: FunctionComponent<IProps> = ({ devices }) => {
+export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
+
+  assert(route);
 
   // todo: request if not connected
   const device = devices.find(
-    (device) => btoa(device.id) === route?.params.deviceId,
+    (device) => device.id === decodeURIComponent(route.params.id),
   );
 
   const { rx, send } = useSocket(device);
 
   if (!device) {
     console.log(devices, route);
+
+    const connect = async () => {
+      console.log('NAME', route.params.name);
+      const device = await requestDeviceByName(route.params.name);
+      setDevices((prev) => prev.concat(device));
+    };
+
     return (
-      <h1>
+      <div>
         <Link to="/">Back</Link>
-        no device
-      </h1>
+        <h2>{decodeURIComponent(route.params.name)}</h2>
+        <h3>not connected</h3>
+        <button onClick={connect}>Connect</button>
+      </div>
     );
   }
 
