@@ -99,6 +99,13 @@ export class Socket extends Queue {
     this.end();
   }
 }
+export class LSocket extends Socket {
+  send(value) {
+    for (let i = 0; i < value.length; i += CHUNKSIZE) {
+      super.send(value.substring(i, i + CHUNKSIZE));
+    }
+  }
+}
 export const repl = (device, opts) => {
   const signal = opts?.signal || new AbortController().signal;
   const sock = new Socket(device, signal);

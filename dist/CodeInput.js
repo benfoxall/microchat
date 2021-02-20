@@ -8,13 +8,15 @@ export const CodeInput = ({onChange}) => {
     }
   };
   return /* @__PURE__ */ React.createElement("form", {
-    className: "CodeInput",
+    className: "flex right-0",
     onSubmit: submit
   }, /* @__PURE__ */ React.createElement("input", {
     type: "text",
-    name: "code"
+    name: "code",
+    className: "flex-1 p-4"
   }), /* @__PURE__ */ React.createElement("input", {
     type: "submit",
-    value: "send"
+    value: "send",
+    className: "p-4"
   }));
 };
