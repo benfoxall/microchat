@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
-import { Socket, assert, requestDeviceByName } from './puck-stuff';
+import { Socket, assert, requestDeviceByName, LSocket } from './puck-stuff';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
@@ -84,7 +84,7 @@ const useSocket = (device?: BluetoothDevice) => {
     setRx('');
 
     const t = setTimeout(() => {
-      const value = new Socket(device, controller.signal);
+      const value = new LSocket(device, controller.signal);
 
       value.listen((v) => {
         setRx((prev) => prev + v);

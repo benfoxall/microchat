@@ -136,6 +136,14 @@ export class Socket extends Queue<string> {
   }
 }
 
+export class LSocket extends Socket {
+  send(value: string) {
+    for (let i = 0; i < value.length; i += CHUNKSIZE) {
+      super.send(value.substring(i, i + CHUNKSIZE));
+    }
+  }
+}
+
 interface REPLOptions {
   signal?: AbortController['signal'];
 }
