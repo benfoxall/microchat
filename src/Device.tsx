@@ -11,6 +11,7 @@ import React, {
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
 import { Socket, assert, requestDeviceByName, LSocket } from './puck-stuff';
+import { useGradientStyle } from './util';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
@@ -26,8 +27,6 @@ interface IProps {
 export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
 
-
-
   assert(route);
 
   // todo: request if not connected
@@ -37,18 +36,18 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
 
   const { rx, send } = useSocket(device);
 
-  const main = useRef<HTMLElement>(null)
-
+  const main = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (main.current) {
       main.current.scrollTo({
         top: main.current.scrollHeight - main.current.clientHeight,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
+  }, [rx]);
 
-  }, [rx])
+  const style = useGradientStyle(route.params.id);
 
   if (!device) {
     console.log(devices, route);
@@ -62,27 +61,38 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
     return (
       <div className="m-4 p-4 bg-yellow-400 rounded-md shadow-lg">
         <div>
-          <Link className="p-4 hover:text-blue-600" to="/">←</Link>
+          <Link className="p-4 hover:text-blue-600" to="/">
+            ←
+          </Link>
           connection lost
         </div>
 
-
-        <button className="m-4 text-xl hover:text-blue-600" onClick={connect}>Reconnect {decodeURIComponent(route.params.name)} </button>
+        <button className="m-4 text-xl hover:text-blue-600" onClick={connect}>
+          Reconnect {decodeURIComponent(route.params.name)}{' '}
+        </button>
       </div>
     );
   }
 
   return (
     <section className="h-full flex flex-col">
-      <header className="bg-yellow-400 p-4 flex items-center">
-        <Link className="px-4 py-2 hover:text-blue-600" to="/">←</Link>
+      <header className="bg-black text-white p-4 flex items-center">
+        <Link className="px-4 py-2 hover:text-blue-600" to="/">
+          ←
+        </Link>
 
-        <div className="rounded-full bg-gray-800 w-7 h-7 transition shadow-md" ></div>
+        <div
+          className="rounded-full bg-gray-800 w-7 h-7 transition shadow-md"
+          style={style}
+        ></div>
 
-        <p className="px-4 text-xl font-mono" >{device.name}</p>
+        <p className="px-4 text-xl font-mono">{device.name}</p>
       </header>
 
-      <main ref={main} className="flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll">
+      <main
+        ref={main}
+        className="flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll"
+      >
         {rx}
       </main>
       <footer>

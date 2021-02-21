@@ -1,8 +1,4 @@
-import { assert } from 'chai';
-import React, {
-  FormEventHandler,
-  FunctionComponent,
-} from 'react';
+import React, { FormEventHandler, FunctionComponent } from 'react';
 
 interface Props {
   onChange: (value: string) => void;
@@ -19,9 +15,13 @@ export const CodeInput: FunctionComponent<Props> = ({ onChange }) => {
   };
 
   return (
-    <form className="flex right-0" onSubmit={submit}>
-      <input type="text" name="code" className="flex-1 p-4"></input>
-      <input type="submit" value="send" className="p-4" />
+    <form className="flex m-4 border-2 border-green-400" onSubmit={submit}>
+      <input
+        type="text"
+        name="code"
+        className="flex-1 p-4 bg-gray-100 border-red-400"
+      ></input>
+      <input type="submit" value="send" className="p-4 bg-green-400" />
     </form>
   );
 };
