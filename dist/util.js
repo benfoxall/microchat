@@ -4,7 +4,7 @@ export const useGradientStyle = (key) => {
     h += letter.charCodeAt(0);
   }
   const rotate = h % 60;
-  const c1 = h % 360;
+  const c1 = h * 10 % 360;
   const c2 = (c1 + 180 + Math.round(Math.sin(h) * 90)) % 360;
   return {
     background: `linear-gradient(

@@ -17,6 +17,7 @@ export const CodeInput = ({onChange}) => {
   }), /* @__PURE__ */ React.createElement("input", {
     type: "submit",
     value: "send",
-    className: "p-4 bg-green-400"
+    className: "p-4 bg-green-400",
+    spellCheck: false
   }));
 };

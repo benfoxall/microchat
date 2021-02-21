@@ -28,7 +28,7 @@ export const DeviceList = ({
     key: device.id,
     device
   }))), /* @__PURE__ */ React.createElement("button", {
-    className: "rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-4 left-1/2 transform -translate-x-1/2 text-white",
+    className: "rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white",
     onClick: addDevice
   }, "+"));
 };
