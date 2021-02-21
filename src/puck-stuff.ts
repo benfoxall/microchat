@@ -39,7 +39,7 @@ export function assert(value: any): asserts value {
 
 class Queue<T> implements AsyncIterable<T> {
   private next: Promise<Queue<T>>;
-  private resolve: (value: Queue<T>) => void = () => {};
+  private resolve: (value: Queue<T>) => void = () => { };
 
   constructor(readonly value: T | null = null) {
     this.next = new Promise((resolve) => (this.resolve = resolve));
@@ -86,6 +86,7 @@ export class Socket extends Queue<string> {
     (async () => {
       assert(this.device.gatt);
 
+      // FIXME: This may throw no longer in range
       const gatt = await this.device.gatt.connect();
 
       const service = await gatt.getPrimaryService(NORDIC_SERVICE);

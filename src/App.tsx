@@ -7,7 +7,8 @@ import { ToastContainer } from 'react-toastify';
 
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import { DeviceList } from './DeviceList';
-import { Device, DEVICE_ROUTE } from './Device';
+import { Device, DEVICE_INFO_ROUTE, DEVICE_ROUTE } from './Device';
+import { DeviceInfo } from './DeviceInfo';
 
 interface AppProps { }
 
@@ -18,13 +19,14 @@ function App({ }: AppProps) {
     <HashRouter>
       <div className="h-full">
         <Switch>
+          {/* <Route path={DEVICE_INFO_ROUTE}>
+            <DeviceInfo devices={devices} setDevices={setDevices} />
+          </Route> */}
           <Route path={DEVICE_ROUTE}>
             <Device devices={devices} setDevices={setDevices} />
           </Route>
           <Route>
-            <header>
-              <DeviceList value={devices} onChange={setDevices} />
-            </header>
+            <DeviceList value={devices} onChange={setDevices} />
           </Route>
         </Switch>
       </div>

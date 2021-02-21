@@ -19,6 +19,8 @@ export interface IDEVICE_ROUTE {
   name: string;
 }
 
+export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + '/info'
+
 interface IProps {
   devices: BluetoothDevice[];
   setDevices: Dispatch<SetStateAction<BluetoothDevice[]>>;
@@ -48,6 +50,7 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   }, [rx]);
 
   const style = useGradientStyle(route.params.id);
+  const [expanded, setExpanded] = useState(false);
 
   if (!device) {
     console.log(devices, route);
@@ -76,7 +79,10 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
 
   return (
     <section className="h-full flex flex-col">
-      <header className="bg-black text-white p-4 flex items-center">
+      <header className="bg-black text-white p-4 flex items-center justify-between cursor-pointer focus:outline-none"
+        tabIndex={-1}
+        onClick={() => setExpanded(prev => !prev)}
+      >
         <Link className="px-4 py-2 hover:text-blue-600" to="/">
           ←
         </Link>
@@ -86,8 +92,13 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
           style={style}
         ></div>
 
-        <p className="px-4 text-xl font-mono">{device.name}</p>
+        <p className="px-4 text-xl font-mono flex-1">
+          {device.name}
+        </p>
       </header>
+
+
+      {/* {expanded && <div className="bg-gray-800 text-white p-8">more info</div>} */}
 
       <main
         ref={main}
