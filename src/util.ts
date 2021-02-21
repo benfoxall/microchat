@@ -14,8 +14,8 @@ export const useGradientStyle = (key: string): CSSProperties => {
   return {
     background: `linear-gradient(
         ${rotate}deg, 
-        hsl(${c1}deg, 70%,50%), 
-        hsl(${c2}deg, 90%,40%)
+        hsl(${c1}deg, 90%,60%), 
+        hsl(${c2}deg, 90%,60%)
     )`,
   };
 };
