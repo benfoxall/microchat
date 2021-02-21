@@ -34,6 +34,7 @@ export function requestDeviceByName(name: string) {
 // other things
 
 export class Socket extends EventTarget {
+  state: 'connecting' | 'connected' | 'closed' | 'error' = 'connecting';
   #messageQueue = new Queue<string>();
 
   constructor(private device: BluetoothDevice) {
@@ -42,7 +43,6 @@ export class Socket extends EventTarget {
     (async () => {
       assert(this.device.gatt);
 
-      // FIXME: This may throw no longer in range
       const gatt = await this.device.gatt.connect();
 
       const service = await gatt.getPrimaryService(NORDIC_SERVICE);
@@ -62,6 +62,7 @@ export class Socket extends EventTarget {
       rx.startNotifications();
 
       console.log('socket: connected');
+      this.state = 'connected';
 
       for await (const value of this.#messageQueue) {
         const u8 = new TextEncoder().encode(value);
@@ -75,7 +76,15 @@ export class Socket extends EventTarget {
       rx.stopNotifications();
 
       console.log('socket: disconnected');
-    })();
+    })().then(
+      () => {
+        this.state = 'closed';
+      },
+      (e) => {
+        console.error(e);
+        this.state = 'error';
+      },
+    );
   }
 
   send(value: string) {

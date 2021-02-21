@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
-import { Socket, requestDeviceByName, LSocket } from './puck-stuff';
+import { Socket, requestDeviceByName } from './puck-stuff';
 import { useGradientStyle, assert } from './util';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
