@@ -10,8 +10,8 @@ import React, {
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
-import { Socket, assert, requestDeviceByName, LSocket } from './puck-stuff';
-import { useGradientStyle } from './util';
+import { Socket, requestDeviceByName, LSocket } from './puck-stuff';
+import { useGradientStyle, assert } from './util';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
@@ -19,7 +19,7 @@ export interface IDEVICE_ROUTE {
   name: string;
 }
 
-export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + '/info'
+export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + '/info';
 
 interface IProps {
   devices: BluetoothDevice[];
@@ -79,9 +79,10 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
 
   return (
     <section className="h-full flex flex-col">
-      <header className="bg-black text-white p-4 flex items-center justify-between cursor-pointer focus:outline-none"
+      <header
+        className="bg-black text-white p-4 flex items-center justify-between cursor-pointer focus:outline-none"
         tabIndex={-1}
-        onClick={() => setExpanded(prev => !prev)}
+        onClick={() => setExpanded((prev) => !prev)}
       >
         <Link className="px-4 py-2 hover:text-blue-600" to="/">
           ←
@@ -92,11 +93,8 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
           style={style}
         ></div>
 
-        <p className="px-4 text-xl font-mono flex-1">
-          {device.name}
-        </p>
+        <p className="px-4 text-xl font-mono flex-1">{device.name}</p>
       </header>
-
 
       {/* {expanded && <div className="bg-gray-800 text-white p-8">more info</div>} */}
 

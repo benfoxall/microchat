@@ -1,6 +1,8 @@
 // things from https://www.puck-js.com/puck.js
 // MPL 2
 
+import { assert, Queue } from './util';
+
 const NORDIC_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const NORDIC_TX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const NORDIC_RX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
@@ -30,43 +32,6 @@ export function requestDeviceByName(name: string) {
 }
 
 // other things
-
-export function assert(value: any): asserts value {
-  if (!value) {
-    throw new Error('Assertation Error');
-  }
-}
-
-class Queue<T> implements AsyncIterable<T> {
-  private next: Promise<Queue<T>>;
-  private resolve: (value: Queue<T>) => void = () => { };
-
-  constructor(readonly value: T | null = null) {
-    this.next = new Promise((resolve) => (this.resolve = resolve));
-  }
-
-  add(value: T) {
-    const next = new Queue(value);
-    this.resolve(next);
-    this.resolve = next.resolve;
-  }
-
-  end() {
-    this.resolve(new Queue());
-  }
-
-  async *[Symbol.asyncIterator]() {
-    while (true) {
-      const current = await this.next;
-
-      this.next = current.next;
-
-      if (current.value === null) break;
-
-      yield current.value;
-    }
-  }
-}
 
 export class Socket extends Queue<string> {
   private listeners = new Set<(value: string) => void>();
