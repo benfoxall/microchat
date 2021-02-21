@@ -7,15 +7,14 @@ import { HashRouter, Route, Switch } from 'react-router-dom';
 import { DeviceList } from './DeviceList';
 import { Device, DEVICE_ROUTE } from './Device';
 
-interface AppProps { }
+interface AppProps {}
 
-function App({ }: AppProps) {
+function App({}: AppProps) {
   const [devices, setDevices] = useState<BluetoothDevice[]>([]);
-
 
   return (
     <HashRouter>
-      <div className="h-screen">
+      <div className="h-full">
         <Switch>
           <Route path={DEVICE_ROUTE}>
             <Device devices={devices} setDevices={setDevices} />
