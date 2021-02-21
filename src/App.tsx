@@ -7,21 +7,17 @@ import { ToastContainer } from 'react-toastify';
 
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import { DeviceList } from './DeviceList';
-import { Device, DEVICE_INFO_ROUTE, DEVICE_ROUTE } from './Device';
-import { DeviceInfo } from './DeviceInfo';
+import { Device, DEVICE_ROUTE } from './Device';
 
-interface AppProps { }
+interface AppProps {}
 
-function App({ }: AppProps) {
+function App({}: AppProps) {
   const [devices, setDevices] = useState<BluetoothDevice[]>([]);
 
   return (
     <HashRouter>
-      <div className="h-full">
+      <div className="h-full max-w-lg bg-gray-50 shadow-lg m-auto rounded-md overflow-auto">
         <Switch>
-          {/* <Route path={DEVICE_INFO_ROUTE}>
-            <DeviceInfo devices={devices} setDevices={setDevices} />
-          </Route> */}
           <Route path={DEVICE_ROUTE}>
             <Device devices={devices} setDevices={setDevices} />
           </Route>
