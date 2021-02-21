@@ -8,7 +8,7 @@ export const useGradientStyle = (key: string): CSSProperties => {
   }
 
   const rotate = h % 60;
-  const c1 = h % 360;
+  const c1 = (h * 10) % 360;
   const c2 = (c1 + 180 + Math.round(Math.sin(h) * 90)) % 360;
 
   return {

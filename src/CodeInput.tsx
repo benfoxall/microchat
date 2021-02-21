@@ -21,7 +21,12 @@ export const CodeInput: FunctionComponent<Props> = ({ onChange }) => {
         name="code"
         className="flex-1 p-4 bg-gray-100 border-red-400"
       ></input>
-      <input type="submit" value="send" className="p-4 bg-green-400" />
+      <input
+        type="submit"
+        value="send"
+        className="p-4 bg-green-400"
+        spellCheck={false}
+      />
     </form>
   );
 };
