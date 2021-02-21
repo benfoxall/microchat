@@ -1,4 +1,5 @@
 import React, {useState} from "../_snowpack/pkg/react.js";
+import "./styles.css.proxy.js";
 import "../_snowpack/pkg/react-toastify/dist/ReactToastify.css.proxy.js";
 import {ToastContainer} from "../_snowpack/pkg/react-toastify.js";
 import {HashRouter, Route, Switch} from "../_snowpack/pkg/react-router-dom.js";
