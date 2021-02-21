@@ -9,6 +9,8 @@ import { toast } from 'react-toastify';
 import { generatePath, NavLink } from 'react-router-dom';
 import { DEVICE_ROUTE } from './Device';
 import { useGradientStyle } from './util';
+import { db, IDevice } from './db';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 interface IDevicesProps {
   value: BluetoothDevice[];
@@ -27,22 +29,30 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
         toast.warn('already added');
       } else {
         onChange((prev) => prev.concat(device));
+
+        db.devices.add(
+          {
+            id: device.id,
+            name: device.name || '',
+            createdAt: Date.now(),
+            nickname: '',
+            notes: '',
+          },
+          device.id,
+        );
       }
     } catch (e) {
       console.warn(e);
     }
   };
 
-  const remove = (device: BluetoothDevice) => (e: SyntheticEvent) => {
-    e.preventDefault();
-    onChange((devices) => devices.filter((target) => device !== target));
-  };
+  const deviceData = useLiveQuery(() => db.devices.toArray(), []);
 
   return (
     <section>
       <ul>
-        {value.map((device) => (
-          <DeviceListItem key={device.id} device={device} />
+        {deviceData?.map((data) => (
+          <DeviceListItem key={data.id} device={data} />
         ))}
       </ul>
       <button
@@ -55,15 +65,18 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
   );
 };
 
-const DeviceListItem: FunctionComponent<{ device: BluetoothDevice }> = ({
-  device,
-}) => {
+const DeviceListItem: FunctionComponent<{ device: IDevice }> = ({ device }) => {
   const link = generatePath(DEVICE_ROUTE, {
     id: device.id,
     name: device.name || '?',
   });
 
   const background = useGradientStyle(device.id);
+
+  const remove = (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (confirm('Remove?')) db.devices.delete(device.id);
+  };
 
   return (
     <li>
@@ -82,7 +95,12 @@ const DeviceListItem: FunctionComponent<{ device: BluetoothDevice }> = ({
           <h3 className="text-gray-800 text-sm">-</h3>
         </div>
 
-        {/* <button className="m-4 bg-red-400 hover:bg-red-700 p-2 rounded-lg">&times;</button> */}
+        <button
+          onClick={remove}
+          className="m-3 h-7 w-7 hover:bg-red-100 text-red-500 p-0 rounded-full flex items-center justify-center"
+        >
+          &times;
+        </button>
       </NavLink>
     </li>
   );
