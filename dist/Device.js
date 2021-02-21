@@ -7,6 +7,7 @@ import React, {
 import {Link, useRouteMatch} from "../_snowpack/pkg/react-router-dom.js";
 import {CodeInput} from "./CodeInput.js";
 import {assert, requestDeviceByName, LSocket} from "./puck-stuff.js";
+import {useGradientStyle} from "./util.js";
 export const DEVICE_ROUTE = "/\u2192/:id/:name";
 export const Device = ({devices, setDevices}) => {
   const route = useRouteMatch(DEVICE_ROUTE);
@@ -22,6 +23,7 @@ export const Device = ({devices, setDevices}) => {
       });
     }
   }, [rx]);
+  const style = useGradientStyle(route.params.id);
   if (!device) {
     console.log(devices, route);
     const connect = async () => {
@@ -42,12 +44,13 @@ export const Device = ({devices, setDevices}) => {
   return /* @__PURE__ */ React.createElement("section", {
     className: "h-full flex flex-col"
   }, /* @__PURE__ */ React.createElement("header", {
-    className: "bg-yellow-400 p-4 flex items-center"
+    className: "bg-black text-white p-4 flex items-center"
   }, /* @__PURE__ */ React.createElement(Link, {
     className: "px-4 py-2 hover:text-blue-600",
     to: "/"
   }, "\u2190"), /* @__PURE__ */ React.createElement("div", {
-    className: "rounded-full bg-gray-800 w-7 h-7 transition shadow-md"
+    className: "rounded-full bg-gray-800 w-7 h-7 transition shadow-md",
+    style
   }), /* @__PURE__ */ React.createElement("p", {
     className: "px-4 text-xl font-mono"
   }, device.name)), /* @__PURE__ */ React.createElement("main", {
