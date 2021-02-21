@@ -1,16 +1,14 @@
-import { use } from 'chai';
 import React, {
   Dispatch,
   FunctionComponent,
   SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
-import { Socket, requestDeviceByName } from './puck-stuff';
+import { requestDeviceByName, useSocket } from './puck-stuff';
 import { useGradientStyle, assert } from './util';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
@@ -36,7 +34,7 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
     (device) => device.id === decodeURIComponent(route.params.id),
   );
 
-  const { rx, send } = useSocket(device);
+  const { send, output, error } = useSocket(device);
 
   const main = useRef<HTMLElement>(null);
 
@@ -47,10 +45,10 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
         behavior: 'smooth',
       });
     }
-  }, [rx]);
+  }, [output]);
 
   const style = useGradientStyle(route.params.id);
-  const [expanded, setExpanded] = useState(false);
+  const [, setExpanded] = useState(false);
 
   if (!device) {
     console.log(devices, route);
@@ -102,52 +100,18 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
         ref={main}
         className="flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll"
       >
-        {rx}
+        {output}
       </main>
+
+      {error && (
+        <p className="m-4 bg-red-100 text-red-500 rounded-md p-2">
+          {error || 'Error'}
+        </p>
+      )}
+
       <footer>
         <CodeInput onChange={send} />
       </footer>
     </section>
   );
-};
-
-const useSocket = (device?: BluetoothDevice) => {
-  const [socket, setSocket] = useState<Socket>();
-  const [rx, setRx] = useState('');
-  const send = useCallback(
-    (value: string) => {
-      socket?.send(value + '\n');
-    },
-    [socket],
-  );
-
-  useEffect(() => {
-    if (!device) return;
-
-    const controller = new AbortController();
-
-    setRx('');
-
-    const t = setTimeout(() => {
-      const value = new Socket(device);
-
-      value.addEventListener('data', (event) => {
-        // @ts-ignore
-        setRx((prev) => prev + event.data);
-      });
-
-      controller.signal.addEventListener('abort', () => {
-        value.close();
-      });
-
-      setSocket(value);
-    }, 300);
-
-    return () => {
-      clearTimeout(t);
-      controller.abort();
-    };
-  }, [device]);
-
-  return { socket, rx, send };
 };

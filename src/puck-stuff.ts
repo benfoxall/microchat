@@ -1,6 +1,7 @@
 // things from https://www.puck-js.com/puck.js
 // MPL 2
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { assert, Queue } from './util';
 
 const NORDIC_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -33,11 +34,15 @@ export function requestDeviceByName(name: string) {
 
 // other things
 
-export class Socket extends EventTarget {
-  state: 'connecting' | 'connected' | 'closed' | 'error' = 'connecting';
-  #messageQueue = new Queue<string>();
+type SocketState = 'connecting' | 'connected' | 'closed' | 'error';
 
-  constructor(private device: BluetoothDevice) {
+export class Socket extends EventTarget {
+  state: SocketState = 'connecting';
+
+  constructor(
+    private device: BluetoothDevice,
+    private queue = new Queue<string>(),
+  ) {
     super();
 
     (async () => {
@@ -64,7 +69,7 @@ export class Socket extends EventTarget {
       console.log('socket: connected');
       this.state = 'connected';
 
-      for await (const value of this.#messageQueue) {
+      for await (const value of this.queue) {
         const u8 = new TextEncoder().encode(value);
 
         console.log('Socket: [TX] ↑ ', value);
@@ -79,21 +84,61 @@ export class Socket extends EventTarget {
     })().then(
       () => {
         this.state = 'closed';
+
+        this.dispatchEvent(new CloseEvent('close'));
       },
-      (e) => {
-        console.error(e);
+      (error) => {
+        console.error(error);
         this.state = 'error';
+        this.dispatchEvent(new ErrorEvent('error', { error }));
       },
     );
   }
 
   send(value: string) {
     for (let i = 0; i < value.length; i += CHUNKSIZE) {
-      this.#messageQueue.add(value.substring(i, i + CHUNKSIZE));
+      this.queue.add(value.substring(i, i + CHUNKSIZE));
     }
   }
 
   close() {
-    this.#messageQueue.end();
+    this.queue.end();
   }
 }
+
+// react bindings
+
+export const useSocket = (device?: BluetoothDevice) => {
+  const [queue] = useState(() => new Queue<string>());
+  const send = useCallback((value: string) => queue.add(value + '\n'), [queue]);
+
+  const [error, setError] = useState<string | null>(null);
+  const [output, setOutput] = useState<string>('');
+
+  useEffect(() => {
+    setError(null);
+
+    if (!device) return;
+
+    const socket = new Socket(device, queue);
+
+    socket.addEventListener('error', (event) => {
+      setError(String((event as ErrorEvent).error) || 'Error');
+    });
+
+    socket.addEventListener('close', (event) => {
+      setError('closed');
+    });
+
+    socket.addEventListener('data', (event) => {
+      const payload = (event as MessageEvent<string>).data;
+      setOutput((prev) => prev + payload);
+    });
+
+    return () => {
+      socket.close();
+    };
+  }, [device]);
+
+  return { error, output, send };
+};
