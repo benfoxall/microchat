@@ -31,10 +31,10 @@ export interface IDevice {
 }
 
 export interface IOutput {
-  id: number;
+  id?: number;
   deviceId: string;
   createdAt: number;
-  content: string;
+  content?: string;
 }
 
 export interface IRepl {

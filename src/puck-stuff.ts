@@ -7,7 +7,7 @@ import { assert, Queue } from './util';
 const NORDIC_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const NORDIC_TX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const NORDIC_RX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-const CHUNKSIZE = 16;
+const CHUNKSIZE = 10;
 
 export function requestDevice() {
   return navigator.bluetooth.requestDevice({
@@ -72,9 +72,11 @@ export class Socket extends EventTarget {
       for await (const value of this.queue) {
         const u8 = new TextEncoder().encode(value);
 
-        console.log('Socket: [TX] ↑ ', value);
+        for (let i = 0; i < u8.length; i += CHUNKSIZE) {
+          await tx.writeValue(u8.subarray(i, i + CHUNKSIZE));
 
-        await tx.writeValue(u8);
+          console.log('Socket: [TX] ↑ ', value);
+        }
       }
 
       rx.removeEventListener('characteristicvaluechanged', onValueChanged);
@@ -96,9 +98,7 @@ export class Socket extends EventTarget {
   }
 
   send(value: string) {
-    for (let i = 0; i < value.length; i += CHUNKSIZE) {
-      this.queue.add(value.substring(i, i + CHUNKSIZE));
-    }
+    this.queue.add(value);
   }
 
   close() {

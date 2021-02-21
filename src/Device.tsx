@@ -3,11 +3,13 @@ import React, {
   FunctionComponent,
   SetStateAction,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { CodeInput } from './CodeInput';
+import { db } from './db';
 import { requestDeviceByName, useSocket } from './puck-stuff';
 import { useGradientStyle, assert } from './util';
 
@@ -38,6 +40,32 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
 
   const main = useRef<HTMLElement>(null);
 
+  const [sess] = useState(() =>
+    db.sessions.add({
+      deviceId: route.params.id,
+      createdAt: Date.now(),
+      content: '',
+    }),
+  );
+
+  const [prev, setPrev] = useState('');
+
+  useEffect(() => {
+    const results = db.sessions
+      .where('deviceId')
+      .equals(route.params.id)
+      .sortBy('createdAt');
+
+    results.then((r) => {
+      const join = r
+        .map((result) => result.content)
+        .filter(Boolean)
+        .join('\n>>>>');
+
+      setPrev(join);
+    });
+  }, []);
+
   useEffect(() => {
     if (main.current) {
       main.current.scrollTo({
@@ -45,7 +73,11 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
         behavior: 'smooth',
       });
     }
-  }, [output]);
+
+    sess
+      .then((id) => db.sessions.update(id, { content: output }))
+      .then(() => console.log('wrote'));
+  }, [prev, output]);
 
   const style = useGradientStyle(route.params.id);
   const [, setExpanded] = useState(false);
@@ -100,6 +132,7 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
         ref={main}
         className="flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll"
       >
+        <span className="text-gray-400">{prev}</span>
         {output}
       </main>
 
