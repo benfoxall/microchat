@@ -8,16 +8,16 @@ import {Device, DEVICE_ROUTE} from "./Device.js";
 function App({}) {
   const [devices, setDevices] = useState([]);
   return /* @__PURE__ */ React.createElement(HashRouter, null, /* @__PURE__ */ React.createElement("div", {
-    className: "h-full"
+    className: "h-full max-w-lg bg-gray-50 shadow-lg m-auto rounded-md overflow-auto"
   }, /* @__PURE__ */ React.createElement(Switch, null, /* @__PURE__ */ React.createElement(Route, {
     path: DEVICE_ROUTE
   }, /* @__PURE__ */ React.createElement(Device, {
     devices,
     setDevices
-  })), /* @__PURE__ */ React.createElement(Route, null, /* @__PURE__ */ React.createElement("header", null, /* @__PURE__ */ React.createElement(DeviceList, {
+  })), /* @__PURE__ */ React.createElement(Route, null, /* @__PURE__ */ React.createElement(DeviceList, {
     value: devices,
     onChange: setDevices
-  }))))), /* @__PURE__ */ React.createElement(ToastContainer, {
+  })))), /* @__PURE__ */ React.createElement(ToastContainer, {
     hideProgressBar: true
   }));
 }

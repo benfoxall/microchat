@@ -9,6 +9,7 @@ import {CodeInput} from "./CodeInput.js";
 import {assert, requestDeviceByName, LSocket} from "./puck-stuff.js";
 import {useGradientStyle} from "./util.js";
 export const DEVICE_ROUTE = "/\u2192/:id/:name";
+export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + "/info";
 export const Device = ({devices, setDevices}) => {
   const route = useRouteMatch(DEVICE_ROUTE);
   assert(route);
@@ -24,6 +25,7 @@ export const Device = ({devices, setDevices}) => {
     }
   }, [rx]);
   const style = useGradientStyle(route.params.id);
+  const [expanded, setExpanded] = useState(false);
   if (!device) {
     console.log(devices, route);
     const connect = async () => {
@@ -44,7 +46,9 @@ export const Device = ({devices, setDevices}) => {
   return /* @__PURE__ */ React.createElement("section", {
     className: "h-full flex flex-col"
   }, /* @__PURE__ */ React.createElement("header", {
-    className: "bg-black text-white p-4 flex items-center"
+    className: "bg-black text-white p-4 flex items-center justify-between cursor-pointer focus:outline-none",
+    tabIndex: -1,
+    onClick: () => setExpanded((prev) => !prev)
   }, /* @__PURE__ */ React.createElement(Link, {
     className: "px-4 py-2 hover:text-blue-600",
     to: "/"
@@ -52,7 +56,7 @@ export const Device = ({devices, setDevices}) => {
     className: "rounded-full bg-gray-800 w-7 h-7 transition shadow-md",
     style
   }), /* @__PURE__ */ React.createElement("p", {
-    className: "px-4 text-xl font-mono"
+    className: "px-4 text-xl font-mono flex-1"
   }, device.name)), /* @__PURE__ */ React.createElement("main", {
     ref: main,
     className: "flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll"
