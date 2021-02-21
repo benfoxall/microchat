@@ -129,10 +129,15 @@ const useSocket = (device?: BluetoothDevice) => {
     setRx('');
 
     const t = setTimeout(() => {
-      const value = new LSocket(device, controller.signal);
+      const value = new Socket(device);
 
-      value.listen((v) => {
-        setRx((prev) => prev + v);
+      value.addEventListener('data', (event) => {
+        // @ts-ignore
+        setRx((prev) => prev + event.data);
+      });
+
+      controller.signal.addEventListener('abort', () => {
+        value.close();
       });
 
       setSocket(value);

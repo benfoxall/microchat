@@ -33,20 +33,11 @@ export function requestDeviceByName(name: string) {
 
 // other things
 
-export class Socket extends Queue<string> {
-  private listeners = new Set<(value: string) => void>();
+export class Socket extends EventTarget {
+  #messageQueue = new Queue<string>();
 
-  constructor(
-    private device: BluetoothDevice,
-    signal: AbortController['signal'],
-  ) {
+  constructor(private device: BluetoothDevice) {
     super();
-
-    if (signal.aborted) {
-      this.disconnect();
-    } else {
-      signal.addEventListener('abort', () => this.disconnect());
-    }
 
     (async () => {
       assert(this.device.gatt);
@@ -60,13 +51,11 @@ export class Socket extends Queue<string> {
       const rx = await service.getCharacteristic(NORDIC_RX);
 
       const onValueChanged = (event: any) => {
-        const value = new TextDecoder().decode(event.target.value);
+        const data = new TextDecoder().decode(event.target.value);
 
-        console.log('Socket: [RX] ↓ ', value);
+        console.log('Socket: [RX] ↓ ', data);
 
-        for (const listener of this.listeners) {
-          listener(value);
-        }
+        this.dispatchEvent(new MessageEvent('data', { data }));
       };
 
       rx.addEventListener('characteristicvaluechanged', onValueChanged);
@@ -74,7 +63,7 @@ export class Socket extends Queue<string> {
 
       console.log('socket: connected');
 
-      for await (const value of this) {
+      for await (const value of this.#messageQueue) {
         const u8 = new TextEncoder().encode(value);
 
         console.log('Socket: [TX] ↑ ', value);
@@ -89,47 +78,13 @@ export class Socket extends Queue<string> {
     })();
   }
 
-  send(val: string) {
-    this.add(val);
-  }
-
-  listen(cb: (value: string) => void) {
-    this.listeners.add(cb);
-  }
-
-  disconnect() {
-    this.end();
-  }
-}
-
-export class LSocket extends Socket {
   send(value: string) {
     for (let i = 0; i < value.length; i += CHUNKSIZE) {
-      super.send(value.substring(i, i + CHUNKSIZE));
+      this.#messageQueue.add(value.substring(i, i + CHUNKSIZE));
     }
   }
+
+  close() {
+    this.#messageQueue.end();
+  }
 }
-
-interface REPLOptions {
-  signal?: AbortController['signal'];
-}
-
-export interface IRepl {
-  eval: (code: string) => Promise<string>;
-}
-
-export const repl = (device: BluetoothDevice, opts?: REPLOptions): IRepl => {
-  const signal = opts?.signal || new AbortController().signal;
-
-  const sock = new Socket(device, signal);
-
-  // todo -- init puck
-
-  return {
-    eval(code: string) {
-      sock.send(code + '\n');
-
-      return Promise.resolve('Not implemented');
-    },
-  };
-};
