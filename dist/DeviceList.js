@@ -30,11 +30,17 @@ export const DeviceList = ({
     }
   };
   const deviceData = useLiveQuery(() => db.devices.toArray(), []);
-  return /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("ul", null, deviceData?.map((data) => /* @__PURE__ */ React.createElement(DeviceListItem, {
+  return /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("div", {
+    className: "bg-green-400 p-5"
+  }, /* @__PURE__ */ React.createElement("h1", {
+    className: " text-3xl"
+  }, "MicroChat"), /* @__PURE__ */ React.createElement("p", {
+    className: " text-lg text-gray-800"
+  }, "A chat ui for Espruino boards")), /* @__PURE__ */ React.createElement("ul", null, deviceData?.map((data) => /* @__PURE__ */ React.createElement(DeviceListItem, {
     key: data.id,
     device: data
   }))), /* @__PURE__ */ React.createElement("button", {
-    className: "rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white",
+    className: "rounded-full bg-green-400 w-12 h-12 hover:bg-green-700 transition shadow-lg fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white",
     onClick: addDevice
   }, "+"));
 };
