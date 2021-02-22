@@ -5,7 +5,7 @@ import { Dexie } from 'dexie';
 export class AppDB extends Dexie {
   devices: Dexie.Table<IDevice, string>;
   sessions: Dexie.Table<IOutput, number>;
-  messages: Dexie.Table<IRepl, number>;
+  messages: Dexie.Table<IMessage, number>;
 
   constructor() {
     super('AppDB');
@@ -37,7 +37,7 @@ export interface IOutput {
   content?: string;
 }
 
-export interface IRepl {
+export interface IMessage {
   id: number;
   deviceId: string;
   createdAt: number;

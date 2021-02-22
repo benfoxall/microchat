@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import './styles.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,17 +12,15 @@ import { Device, DEVICE_ROUTE } from './Device';
 interface AppProps {}
 
 function App({}: AppProps) {
-  const [devices, setDevices] = useState<BluetoothDevice[]>([]);
-
   return (
     <HashRouter>
       <div className="h-full max-w-lg bg-gray-50 shadow-lg m-auto rounded-md overflow-auto">
         <Switch>
           <Route path={DEVICE_ROUTE}>
-            <Device devices={devices} setDevices={setDevices} />
+            <Device />
           </Route>
           <Route>
-            <DeviceList value={devices} onChange={setDevices} />
+            <DeviceList />
           </Route>
         </Switch>
       </div>

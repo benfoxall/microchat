@@ -1,35 +1,24 @@
-import React, {
-  Dispatch,
-  FunctionComponent,
-  SetStateAction,
-  SyntheticEvent,
-} from 'react';
-import { requestDevice } from './puck-stuff';
+import React, { FunctionComponent, SyntheticEvent } from 'react';
 import { toast } from 'react-toastify';
 import { generatePath, NavLink } from 'react-router-dom';
 import { DEVICE_ROUTE } from './Device';
 import { useGradientStyle } from './util';
 import { db, IDevice } from './db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useRequestDevice } from './device-cache';
 
-interface IDevicesProps {
-  value: BluetoothDevice[];
-  onChange: Dispatch<SetStateAction<BluetoothDevice[]>>;
-}
+export const DeviceList: FunctionComponent = () => {
+  const connect = useRequestDevice();
 
-export const DeviceList: FunctionComponent<IDevicesProps> = ({
-  value,
-  onChange,
-}) => {
   const addDevice = async () => {
-    try {
-      const device = await requestDevice();
+    const device = await connect();
 
-      if (value.includes(device)) {
+    if (device) {
+      const count = await db.devices.where('id').equals(device.id).count();
+
+      if (count > 0) {
         toast.warn('already added');
       } else {
-        onChange((prev) => prev.concat(device));
-
         db.devices.add(
           {
             id: device.id,
@@ -41,8 +30,6 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
           device.id,
         );
       }
-    } catch (e) {
-      console.warn(e);
     }
   };
 

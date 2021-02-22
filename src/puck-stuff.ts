@@ -53,6 +53,9 @@ export class Socket extends EventTarget {
     (async () => {
       assert(this.device.gatt);
 
+      // not perfect, but might give previous socket time to close
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const gatt = await this.device.gatt.connect();
 
       const service = await gatt.getPrimaryService(NORDIC_SERVICE);

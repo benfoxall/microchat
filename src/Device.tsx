@@ -1,16 +1,9 @@
-import React, {
-  Dispatch,
-  FunctionComponent,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
+import { useDevice } from './device-cache';
 import { CodeInput } from './CodeInput';
 import { db } from './db';
-import { requestDeviceByName, useSocket } from './puck-stuff';
+import { useSocket } from './puck-stuff';
 import { useGradientStyle, assert } from './util';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
@@ -21,22 +14,13 @@ export interface IDEVICE_ROUTE {
 
 export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + '/info';
 
-interface IProps {
-  devices: BluetoothDevice[];
-  setDevices: Dispatch<SetStateAction<BluetoothDevice[]>>;
-}
-
-export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
+export const Device: FunctionComponent = () => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
 
   assert(route);
 
-  // todo: request if not connected
-  const device = devices.find(
-    (device) => device.id === decodeURIComponent(route.params.id),
-  );
-
-  const { send, output, error } = useSocket(device);
+  const [device, reconnect, clear] = useDevice(route.params.name);
+  const { send, output, error, state } = useSocket(device);
 
   const main = useRef<HTMLElement>(null);
 
@@ -60,7 +44,7 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
       const join = r
         .map((result) => result.content)
         .filter(Boolean)
-        .join('\n>>>>');
+        .join('\n');
 
       setPrev(join);
     });
@@ -83,14 +67,6 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
   const [, setExpanded] = useState(false);
 
   if (!device) {
-    console.log(devices, route);
-
-    const connect = async () => {
-      console.log('NAME', route.params.name);
-      const device = await requestDeviceByName(route.params.name);
-      setDevices((prev) => prev.concat(device));
-    };
-
     return (
       <div className="m-4 p-4 bg-yellow-400 rounded-md shadow-lg">
         <div>
@@ -100,7 +76,7 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
           connection lost
         </div>
 
-        <button className="m-4 text-xl hover:text-blue-600" onClick={connect}>
+        <button className="m-4 text-xl hover:text-blue-600" onClick={reconnect}>
           Reconnect {decodeURIComponent(route.params.name)}{' '}
         </button>
       </div>
@@ -137,11 +113,27 @@ export const Device: FunctionComponent<IProps> = ({ devices, setDevices }) => {
       </main>
 
       {error && (
-        <p className="m-4 bg-red-100 text-red-500 rounded-md p-2">
+        <p className="m-4 bg-red-100 text-red-500 rounded-md p-2 flex items-center">
           {error || 'Error'}
+
+          <button
+            className=" p-2 rounded-md block bg-red-200 hover:bg-red-300"
+            onClick={clear}
+          >
+            Reconnect
+          </button>
         </p>
       )}
 
+      {/* <p className="mx-4">{state}</p>
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          reconnect();
+        }}
+      >
+        RECONNET
+      </button> */}
       <footer>
         <CodeInput onChange={send} />
       </footer>
