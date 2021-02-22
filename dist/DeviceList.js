@@ -1,22 +1,20 @@
 import React from "../_snowpack/pkg/react.js";
-import {requestDevice} from "./puck-stuff.js";
 import {toast} from "../_snowpack/pkg/react-toastify.js";
 import {generatePath, NavLink} from "../_snowpack/pkg/react-router-dom.js";
 import {DEVICE_ROUTE} from "./Device.js";
 import {useGradientStyle} from "./util.js";
 import {db} from "./db.js";
 import {useLiveQuery} from "../_snowpack/pkg/dexie-react-hooks.js";
-export const DeviceList = ({
-  value,
-  onChange
-}) => {
+import {useRequestDevice} from "./device-cache.js";
+export const DeviceList = () => {
+  const connect = useRequestDevice();
   const addDevice = async () => {
-    try {
-      const device = await requestDevice();
-      if (value.includes(device)) {
+    const device = await connect();
+    if (device) {
+      const count = await db.devices.where("id").equals(device.id).count();
+      if (count > 0) {
         toast.warn("already added");
       } else {
-        onChange((prev) => prev.concat(device));
         db.devices.add({
           id: device.id,
           name: device.name || "",
@@ -25,8 +23,6 @@ export const DeviceList = ({
           notes: ""
         }, device.id);
       }
-    } catch (e) {
-      console.warn(e);
     }
   };
   const deviceData = useLiveQuery(() => db.devices.toArray(), []);

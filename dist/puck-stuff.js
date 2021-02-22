@@ -31,8 +31,13 @@ export class Socket extends EventTarget {
     this.device = device;
     this.queue = queue;
     this.state = "connecting";
+    const setState = (state) => {
+      this.state = state;
+      this.dispatchEvent(new Event("state-changed"));
+    };
     (async () => {
       assert(this.device.gatt);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const gatt = await this.device.gatt.connect();
       const service = await gatt.getPrimaryService(NORDIC_SERVICE);
       const tx = await service.getCharacteristic(NORDIC_TX);
@@ -43,9 +48,8 @@ export class Socket extends EventTarget {
         this.dispatchEvent(new MessageEvent("data", {data}));
       };
       rx.addEventListener("characteristicvaluechanged", onValueChanged);
-      rx.startNotifications();
-      console.log("socket: connected");
-      this.state = "connected";
+      await rx.startNotifications();
+      setState("connected");
       for await (const value of this.queue) {
         const u8 = new TextEncoder().encode(value);
         for (let i = 0; i < u8.length; i += CHUNKSIZE) {
@@ -54,14 +58,14 @@ export class Socket extends EventTarget {
         }
       }
       rx.removeEventListener("characteristicvaluechanged", onValueChanged);
-      rx.stopNotifications();
-      console.log("socket: disconnected");
+      await rx.stopNotifications();
+      gatt.disconnect();
     })().then(() => {
-      this.state = "closed";
+      setState("closed");
       this.dispatchEvent(new CloseEvent("close"));
     }, (error) => {
-      console.error(error);
-      this.state = "error";
+      setState("error");
+      console.warn(error);
       this.dispatchEvent(new ErrorEvent("error", {error}));
     });
   }
@@ -77,18 +81,29 @@ export const useSocket = (device) => {
   const send = useCallback((value) => queue.add(value + "\n"), [queue]);
   const [error, setError] = useState(null);
   const [output, setOutput] = useState("");
+  const [state, setState] = useState();
   useEffect(() => {
     setError(null);
     if (!device)
       return;
     const socket = new Socket(device, queue);
+    let cancel = false;
     socket.addEventListener("error", (event) => {
       setError(String(event.error) || "Error");
     });
-    socket.addEventListener("close", (event) => {
+    socket.addEventListener("close", () => {
+      if (cancel)
+        return;
       setError("closed");
     });
+    socket.addEventListener("state-changed", () => {
+      if (cancel)
+        return;
+      setState(socket.state);
+    });
     socket.addEventListener("data", (event) => {
+      if (cancel)
+        return;
       const payload = event.data;
       setOutput((prev) => prev + payload);
     });
@@ -96,5 +111,5 @@ export const useSocket = (device) => {
       socket.close();
     };
   }, [device]);
-  return {error, output, send};
+  return {error, output, send, state};
 };

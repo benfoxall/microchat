@@ -1,20 +1,17 @@
-import React, {
-  useEffect,
-  useRef,
-  useState
-} from "../_snowpack/pkg/react.js";
+import React, {useEffect, useRef, useState} from "../_snowpack/pkg/react.js";
 import {Link, useRouteMatch} from "../_snowpack/pkg/react-router-dom.js";
+import {useDevice} from "./device-cache.js";
 import {CodeInput} from "./CodeInput.js";
 import {db} from "./db.js";
-import {requestDeviceByName, useSocket} from "./puck-stuff.js";
+import {useSocket} from "./puck-stuff.js";
 import {useGradientStyle, assert} from "./util.js";
 export const DEVICE_ROUTE = "/\u2192/:id/:name";
 export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + "/info";
-export const Device = ({devices, setDevices}) => {
+export const Device = () => {
   const route = useRouteMatch(DEVICE_ROUTE);
   assert(route);
-  const device = devices.find((device2) => device2.id === decodeURIComponent(route.params.id));
-  const {send, output, error} = useSocket(device);
+  const [device, reconnect, clear] = useDevice(route.params.name);
+  const {send, output, error, state} = useSocket(device);
   const main = useRef(null);
   const [sess] = useState(() => db.sessions.add({
     deviceId: route.params.id,
@@ -25,7 +22,7 @@ export const Device = ({devices, setDevices}) => {
   useEffect(() => {
     const results = db.sessions.where("deviceId").equals(route.params.id).sortBy("createdAt");
     results.then((r) => {
-      const join = r.map((result) => result.content).filter(Boolean).join("\n>>>>");
+      const join = r.map((result) => result.content).filter(Boolean).join("\n");
       setPrev(join);
     });
   }, []);
@@ -41,12 +38,6 @@ export const Device = ({devices, setDevices}) => {
   const style = useGradientStyle(route.params.id);
   const [, setExpanded] = useState(false);
   if (!device) {
-    console.log(devices, route);
-    const connect = async () => {
-      console.log("NAME", route.params.name);
-      const device2 = await requestDeviceByName(route.params.name);
-      setDevices((prev2) => prev2.concat(device2));
-    };
     return /* @__PURE__ */ React.createElement("div", {
       className: "m-4 p-4 bg-yellow-400 rounded-md shadow-lg"
     }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Link, {
@@ -54,7 +45,7 @@ export const Device = ({devices, setDevices}) => {
       to: "/"
     }, "\u2190"), "connection lost"), /* @__PURE__ */ React.createElement("button", {
       className: "m-4 text-xl hover:text-blue-600",
-      onClick: connect
+      onClick: reconnect
     }, "Reconnect ", decodeURIComponent(route.params.name), " "));
   }
   return /* @__PURE__ */ React.createElement("section", {
@@ -77,8 +68,11 @@ export const Device = ({devices, setDevices}) => {
   }, /* @__PURE__ */ React.createElement("span", {
     className: "text-gray-400"
   }, prev), output), error && /* @__PURE__ */ React.createElement("p", {
-    className: "m-4 bg-red-100 text-red-500 rounded-md p-2"
-  }, error || "Error"), /* @__PURE__ */ React.createElement("footer", null, /* @__PURE__ */ React.createElement(CodeInput, {
+    className: "m-4 bg-red-100 text-red-500 rounded-md p-2 flex items-center"
+  }, error || "Error", /* @__PURE__ */ React.createElement("button", {
+    className: " p-2 rounded-md block bg-red-200 hover:bg-red-300",
+    onClick: clear
+  }, "Reconnect")), /* @__PURE__ */ React.createElement("footer", null, /* @__PURE__ */ React.createElement(CodeInput, {
     onChange: send
   })));
 };
