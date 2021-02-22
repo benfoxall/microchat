@@ -1,4 +1,10 @@
-# EspREPL
+# Micro Chat
+
+A chat interface for connecting to Espruino boards.
+
+## 👷‍♀️ Work in Progress 👷‍♂️
+
+---
 
 > ✨ Bootstrapped with Create Snowpack App (CSA).
 
@@ -31,6 +37,9 @@ Run with the `--watch` flag (`npm test -- --watch`) to run in interactive watch 
 - install is one-off
 - dist purging
 - intellisense
+
+- could be mixed with css modules if you don't like long classnames?
+- adding a header might be a nice task
 
 Problems:
 

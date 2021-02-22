@@ -50,13 +50,17 @@ export const DeviceList: FunctionComponent<IDevicesProps> = ({
 
   return (
     <section>
+      <div className="bg-green-400 p-5">
+        <h1 className=" text-3xl">MicroChat</h1>
+        <p className=" text-lg text-gray-800">A chat ui for Espruino boards</p>
+      </div>
       <ul>
         {deviceData?.map((data) => (
           <DeviceListItem key={data.id} device={data} />
         ))}
       </ul>
       <button
-        className="rounded-full bg-purple-800 w-12 h-12 hover:bg-purple-700 transition shadow-lg fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white"
+        className="rounded-full bg-green-400 w-12 h-12 hover:bg-green-700 transition shadow-lg fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white"
         onClick={addDevice}
       >
         +
