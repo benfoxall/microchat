@@ -45,6 +45,11 @@ export class Socket extends EventTarget {
   ) {
     super();
 
+    const setState = (state: SocketState) => {
+      this.state = state;
+      this.dispatchEvent(new Event('state-changed'));
+    };
+
     (async () => {
       assert(this.device.gatt);
 
@@ -64,10 +69,9 @@ export class Socket extends EventTarget {
       };
 
       rx.addEventListener('characteristicvaluechanged', onValueChanged);
-      rx.startNotifications();
+      await rx.startNotifications();
 
-      console.log('socket: connected');
-      this.state = 'connected';
+      setState('connected');
 
       for await (const value of this.queue) {
         const u8 = new TextEncoder().encode(value);
@@ -80,18 +84,18 @@ export class Socket extends EventTarget {
       }
 
       rx.removeEventListener('characteristicvaluechanged', onValueChanged);
-      rx.stopNotifications();
+      await rx.stopNotifications();
 
-      console.log('socket: disconnected');
+      gatt.disconnect();
     })().then(
       () => {
-        this.state = 'closed';
+        setState('closed');
 
         this.dispatchEvent(new CloseEvent('close'));
       },
       (error) => {
-        console.error(error);
-        this.state = 'error';
+        setState('error');
+        console.warn(error);
         this.dispatchEvent(new ErrorEvent('error', { error }));
       },
     );
@@ -114,6 +118,7 @@ export const useSocket = (device?: BluetoothDevice) => {
 
   const [error, setError] = useState<string | null>(null);
   const [output, setOutput] = useState<string>('');
+  const [state, setState] = useState<SocketState>();
 
   useEffect(() => {
     setError(null);
@@ -122,15 +127,24 @@ export const useSocket = (device?: BluetoothDevice) => {
 
     const socket = new Socket(device, queue);
 
+    let cancel = false;
+
     socket.addEventListener('error', (event) => {
       setError(String((event as ErrorEvent).error) || 'Error');
     });
 
-    socket.addEventListener('close', (event) => {
+    socket.addEventListener('close', () => {
+      if (cancel) return;
       setError('closed');
     });
 
+    socket.addEventListener('state-changed', () => {
+      if (cancel) return;
+      setState(socket.state);
+    });
+
     socket.addEventListener('data', (event) => {
+      if (cancel) return;
       const payload = (event as MessageEvent<string>).data;
       setOutput((prev) => prev + payload);
     });
@@ -140,5 +154,5 @@ export const useSocket = (device?: BluetoothDevice) => {
     };
   }, [device]);
 
-  return { error, output, send };
+  return { error, output, send, state };
 };
