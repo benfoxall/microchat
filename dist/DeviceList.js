@@ -1,6 +1,6 @@
 import React from "../_snowpack/pkg/react.js";
 import {toast} from "../_snowpack/pkg/react-toastify.js";
-import {generatePath, NavLink} from "../_snowpack/pkg/react-router-dom.js";
+import {generatePath, NavLink, useHistory} from "../_snowpack/pkg/react-router-dom.js";
 import {DEVICE_ROUTE} from "./Device.js";
 import {useGradientStyle} from "./util.js";
 import {db} from "./db.js";
@@ -8,6 +8,7 @@ import {useLiveQuery} from "../_snowpack/pkg/dexie-react-hooks.js";
 import {useRequestDevice} from "./device-cache.js";
 export const DeviceList = () => {
   const connect = useRequestDevice();
+  const history = useHistory();
   const addDevice = async () => {
     const device = await connect();
     if (device) {
@@ -15,13 +16,18 @@ export const DeviceList = () => {
       if (count > 0) {
         toast.warn("already added");
       } else {
-        db.devices.add({
+        await db.devices.add({
           id: device.id,
           name: device.name || "",
           createdAt: Date.now(),
           nickname: "",
           notes: ""
         }, device.id);
+        const link = generatePath(DEVICE_ROUTE, {
+          id: device.id,
+          name: device.name || "?"
+        });
+        history.push(link);
       }
     }
   };

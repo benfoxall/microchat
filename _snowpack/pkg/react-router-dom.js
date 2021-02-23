@@ -2320,6 +2320,10 @@ function (_React$Component) {
 }(react.Component);
 
 var useContext = react.useContext;
+function useHistory() {
+
+  return useContext(historyContext);
+}
 function useLocation() {
 
   return useContext(context).location;
@@ -2571,4 +2575,4 @@ var NavLink = forwardRef$1(function (_ref, forwardedRef) {
   });
 });
 
-export { HashRouter, Link, NavLink, Route, Switch, generatePath, useRouteMatch };
+export { HashRouter, Link, NavLink, Route, Switch, generatePath, useHistory, useRouteMatch };
