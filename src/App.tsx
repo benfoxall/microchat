@@ -1,17 +1,14 @@
 import React from 'react';
 
 import './styles.css';
-import 'react-toastify/dist/ReactToastify.css';
-
-import { ToastContainer } from 'react-toastify';
 
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import { DeviceList } from './DeviceList';
 import { Device, DEVICE_ROUTE } from './Device';
 
-interface AppProps {}
+interface AppProps { }
 
-function App({}: AppProps) {
+function App({ }: AppProps) {
   return (
     <HashRouter>
       <div className="h-full max-w-lg bg-gray-50 shadow-lg m-auto rounded-md overflow-auto">
@@ -24,7 +21,6 @@ function App({}: AppProps) {
           </Route>
         </Switch>
       </div>
-      <ToastContainer hideProgressBar />
     </HashRouter>
   );
 }

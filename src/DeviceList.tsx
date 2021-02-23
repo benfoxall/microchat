@@ -1,5 +1,4 @@
 import React, { FunctionComponent, SyntheticEvent } from 'react';
-import { toast } from 'react-toastify';
 import { generatePath, NavLink, useHistory } from 'react-router-dom';
 import { DEVICE_ROUTE } from './Device';
 import { useGradientStyle } from './util';
@@ -18,9 +17,7 @@ export const DeviceList: FunctionComponent = () => {
     if (device) {
       const count = await db.devices.where('id').equals(device.id).count();
 
-      if (count > 0) {
-        toast.warn('already added');
-      } else {
+      if (count === 0) {
         await db.devices.add(
           {
             id: device.id,
@@ -31,14 +28,14 @@ export const DeviceList: FunctionComponent = () => {
           },
           device.id,
         );
-
-        const link = generatePath(DEVICE_ROUTE, {
-          id: device.id,
-          name: device.name || '?',
-        });
-
-        history.push(link)
       }
+
+      const link = generatePath(DEVICE_ROUTE, {
+        id: device.id,
+        name: device.name || '?',
+      });
+
+      history.push(link)
     }
   };
 
