@@ -1,5 +1,4 @@
 import React from "../_snowpack/pkg/react.js";
-import {toast} from "../_snowpack/pkg/react-toastify.js";
 import {generatePath, NavLink, useHistory} from "../_snowpack/pkg/react-router-dom.js";
 import {DEVICE_ROUTE} from "./Device.js";
 import {useGradientStyle} from "./util.js";
@@ -13,9 +12,7 @@ export const DeviceList = () => {
     const device = await connect();
     if (device) {
       const count = await db.devices.where("id").equals(device.id).count();
-      if (count > 0) {
-        toast.warn("already added");
-      } else {
+      if (count === 0) {
         await db.devices.add({
           id: device.id,
           name: device.name || "",
@@ -23,12 +20,12 @@ export const DeviceList = () => {
           nickname: "",
           notes: ""
         }, device.id);
-        const link = generatePath(DEVICE_ROUTE, {
-          id: device.id,
-          name: device.name || "?"
-        });
-        history.push(link);
       }
+      const link = generatePath(DEVICE_ROUTE, {
+        id: device.id,
+        name: device.name || "?"
+      });
+      history.push(link);
     }
   };
   const deviceData = useLiveQuery(() => db.devices.toArray(), []);
