@@ -1,6 +1,6 @@
 import React, { FunctionComponent, SyntheticEvent } from 'react';
 import { toast } from 'react-toastify';
-import { generatePath, NavLink } from 'react-router-dom';
+import { generatePath, NavLink, useHistory } from 'react-router-dom';
 import { DEVICE_ROUTE } from './Device';
 import { useGradientStyle } from './util';
 import { db, IDevice } from './db';
@@ -9,6 +9,8 @@ import { useRequestDevice } from './device-cache';
 
 export const DeviceList: FunctionComponent = () => {
   const connect = useRequestDevice();
+
+  const history = useHistory();
 
   const addDevice = async () => {
     const device = await connect();
@@ -19,7 +21,7 @@ export const DeviceList: FunctionComponent = () => {
       if (count > 0) {
         toast.warn('already added');
       } else {
-        db.devices.add(
+        await db.devices.add(
           {
             id: device.id,
             name: device.name || '',
@@ -29,6 +31,13 @@ export const DeviceList: FunctionComponent = () => {
           },
           device.id,
         );
+
+        const link = generatePath(DEVICE_ROUTE, {
+          id: device.id,
+          name: device.name || '?',
+        });
+
+        history.push(link)
       }
     }
   };
