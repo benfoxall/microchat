@@ -1,7 +1,7 @@
 // things from https://www.puck-js.com/puck.js
 // MPL 2
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { assert, Queue } from './util';
 
 const NORDIC_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -116,6 +116,7 @@ export class Socket extends EventTarget {
 
 // react bindings
 
+
 export const useSocket = (device?: BluetoothDevice) => {
 
   const [error, setError] = useState<string | null>(null);
@@ -123,45 +124,61 @@ export const useSocket = (device?: BluetoothDevice) => {
   const [state, setState] = useState<SocketState>();
 
   const [sock, setSock] = useState<Socket>();
-  const send = useCallback((value: string) => sock?.send(value + '\n'), [sock]);
-
 
   useEffect(() => {
-    setError(null);
+    if (device) {
+      const socket = new Socket(device);
 
-    if (!device) return;
+      setError(null);
+      setSock(socket);
 
-    const socket = new Socket(device);
+      return () => socket.close();
 
-    let cancel = false;
-
-    socket.addEventListener('error', (event) => {
-      setError(String((event as ErrorEvent).error) || 'Error');
-    });
-
-    socket.addEventListener('close', () => {
-      if (cancel) return;
-      setError('closed');
-    });
-
-    socket.addEventListener('state-changed', () => {
-      if (cancel) return;
-      setState(socket.state);
-    });
-
-    socket.addEventListener('data', (event) => {
-      if (cancel) return;
-      const payload = (event as MessageEvent<string>).data;
-      setOutput((prev) => prev + payload);
-    });
-
-    setSock(socket);
-
-    return () => {
-      socket.close();
-      setSock(undefined);
-    };
+    } else {
+      setSock(undefined)
+    }
   }, [device]);
+
+
+  const send = useCallback((value: string) => sock?.send(value + '\n'), [sock]);
+
+  useListener(sock, 'error', (event: ErrorEvent) => {
+    setError(String(event.error) || 'Error');
+  })
+
+  useListener(sock, 'close', () => {
+    setError('closed');
+  })
+
+  useListener(sock, 'state-changed', () => {
+    setState(sock!.state);
+  })
+
+  useListener(sock, 'data', (event: MessageEvent<string>) => {
+    setOutput((prev) => prev + event.data);
+  })
+
+
 
   return { error, output, send, state };
 };
+
+
+
+const useListener = <T extends EventTarget>(target: T | undefined, name: string, callback: (event: any) => void) => {
+  const fn = useRef(callback);
+  fn.current = callback;
+
+  useEffect(() => {
+    if (target) {
+      target.addEventListener(name, handle)
+
+      return () => target.removeEventListener(name, handle)
+
+      function handle(event: any) {
+        fn.current(event)
+      }
+    }
+  }, [target, name]);
+
+}
