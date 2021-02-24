@@ -1,10 +1,17 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, {
+  ChangeEventHandler,
+  FunctionComponent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { useDevice } from './device-cache';
 import { CodeInput } from './CodeInput';
 import { db } from './db';
 import { useSocket } from './puck-stuff';
 import { useGradientStyle, assert } from './util';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
@@ -18,15 +25,17 @@ export const Device: FunctionComponent = () => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
 
   assert(route);
+  const urlId = decodeURIComponent(route.params.id)
 
   const [device, reconnect, clear] = useDevice(route.params.name);
+
   const { send, output, error, state } = useSocket(device);
 
   const main = useRef<HTMLElement>(null);
 
   const [sess] = useState(() =>
     db.sessions.add({
-      deviceId: route.params.id,
+      deviceId: urlId,
       createdAt: Date.now(),
       content: '',
     }),
@@ -37,7 +46,7 @@ export const Device: FunctionComponent = () => {
   useEffect(() => {
     const results = db.sessions
       .where('deviceId')
-      .equals(route.params.id)
+      .equals(urlId)
       .sortBy('createdAt');
 
     results.then((r) => {
@@ -60,11 +69,11 @@ export const Device: FunctionComponent = () => {
 
     sess
       .then((id) => db.sessions.update(id, { content: output }))
-      .then(() => console.log('wrote'));
+      .then(() => console.log('updated session'));
   }, [prev, output]);
 
   const style = useGradientStyle(route.params.id);
-  const [, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   if (!device) {
     return (
@@ -102,7 +111,11 @@ export const Device: FunctionComponent = () => {
         <p className="px-4 text-xl font-mono flex-1">{device.name}</p>
       </header>
 
-      {/* {expanded && <div className="bg-gray-800 text-white p-8">more info</div>} */}
+      {expanded && (
+        <div className="bg-gray-800 text-white p-8">
+          <Details id={decodeURIComponent(route.params.id)} />
+        </div>
+      )}
 
       <main
         ref={main}
@@ -125,18 +138,33 @@ export const Device: FunctionComponent = () => {
         </p>
       )}
 
-      {/* <p className="mx-4">{state}</p>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          reconnect();
-        }}
-      >
-        RECONNET
-      </button> */}
       <footer>
         <CodeInput onChange={send} />
       </footer>
     </section>
+  );
+};
+
+const Details: FunctionComponent<{ id: string }> = ({ id }) => {
+  const deviceQuery = useLiveQuery(() => db.devices.get(id), []);
+
+
+  const setNickname: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const nickname = e.currentTarget.value;
+    db.devices.update(id, { nickname })
+  };
+
+  return (
+    <form onSubmit={(e) => e.preventDefault()}>
+      <label className="flex">
+        <span className="p-2">nickname</span>
+        <input
+          type="text"
+          className="text-black p-2"
+          value={deviceQuery?.nickname || ''}
+          onChange={setNickname}
+        />
+      </label>
+    </form>
   );
 };

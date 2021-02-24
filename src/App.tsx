@@ -6,9 +6,7 @@ import { HashRouter, Route, Switch } from 'react-router-dom';
 import { DeviceList } from './DeviceList';
 import { Device, DEVICE_ROUTE } from './Device';
 
-interface AppProps { }
-
-function App({ }: AppProps) {
+const App = () => {
   return (
     <HashRouter>
       <div className="h-full max-w-lg bg-gray-50 shadow-lg m-auto rounded-md overflow-auto">
