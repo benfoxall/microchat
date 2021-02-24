@@ -1,7 +1,19 @@
-import type { CSSProperties } from 'react';
+import React, { CSSProperties, FC } from 'react';
+
+
+export const Bubble: FC<{ name?: string, className?: string, variant?: 'small' | 'large' }> = ({ name, className = '', variant = "small" }) => {
+
+  const style = useGradientStyle(name || '')
+
+  return <div
+    className={className + " rounded-full bg-gray-800 transition shadow-md " + (variant === 'small' ? 'h-7 w-7' : 'h-12 w-12')}
+    style={style}
+  > </div>
+
+}
 
 /** A deterministic gradient generator */
-export const useGradientStyle = (key: string): CSSProperties => {
+const useGradientStyle = (key: string): CSSProperties => {
   let h = 0;
   for (const letter of key) {
     h += letter.charCodeAt(0);
@@ -20,6 +32,7 @@ export const useGradientStyle = (key: string): CSSProperties => {
   };
 };
 
+
 export function assert(value: any): asserts value {
   if (!value) {
     throw new Error('Assertation Error');
@@ -29,7 +42,7 @@ export function assert(value: any): asserts value {
 /** An async readable queue */
 export class Queue<T> implements AsyncIterable<T> {
   private next: Promise<Queue<T>>;
-  private resolve: (value: Queue<T>) => void = () => {};
+  private resolve: (value: Queue<T>) => void = () => { };
 
   constructor(readonly value: T | null = null) {
     this.next = new Promise((resolve) => (this.resolve = resolve));

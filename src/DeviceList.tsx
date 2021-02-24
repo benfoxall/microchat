@@ -1,7 +1,7 @@
 import React, { FunctionComponent, SyntheticEvent } from 'react';
 import { generatePath, NavLink, useHistory } from 'react-router-dom';
 import { DEVICE_ROUTE } from './Device';
-import { useGradientStyle } from './util';
+import { Bubble } from './util';
 import { db, IDevice } from './db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useRequestDevice } from './device-cache';
@@ -68,8 +68,6 @@ const DeviceListItem: FunctionComponent<{ device: IDevice }> = ({ device }) => {
     name: device.name || '?',
   });
 
-  const background = useGradientStyle(device.id);
-
   const remove = (e: SyntheticEvent) => {
     e.preventDefault();
     if (confirm('Remove?')) db.devices.delete(device.id);
@@ -82,10 +80,10 @@ const DeviceListItem: FunctionComponent<{ device: IDevice }> = ({ device }) => {
         to={link}
         key={device.id}
       >
-        <div
-          className="rounded-full bg-gray-800 w-10 h-10 hover:bg-gray-700 transition shadow-md m-5"
-          style={background}
-        ></div>
+
+        <div className="m-5">
+          <Bubble name={device.id} variant="large" />
+        </div>
 
         <div className="flex-1">
           {device.nickname ?

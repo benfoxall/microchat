@@ -10,7 +10,7 @@ import { useDevice } from './device-cache';
 import { CodeInput } from './CodeInput';
 import { db } from './db';
 import { useSocket } from './puck-stuff';
-import { useGradientStyle, assert } from './util';
+import { assert, Bubble } from './util';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
@@ -74,7 +74,6 @@ export const Device: FunctionComponent = () => {
       .then(() => console.log('updated session'));
   }, [prev, output]);
 
-  const style = useGradientStyle(deviceQuery?.id || '');
   const [expanded, setExpanded] = useState(false);
 
   if (!device) {
@@ -106,10 +105,9 @@ export const Device: FunctionComponent = () => {
         </Link>
 
 
-        <div
-          className="rounded-full bg-gray-800 w-7 h-7 transition shadow-md"
-          style={style}
-        ></div>
+        <div>
+          <Bubble name={deviceQuery?.id} />
+        </div>
 
 
         <p className="px-4 text-xl font-mono flex-1">
