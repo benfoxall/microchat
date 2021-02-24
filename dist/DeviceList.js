@@ -63,11 +63,13 @@ const DeviceListItem = ({device}) => {
     style: background
   }), /* @__PURE__ */ React.createElement("div", {
     className: "flex-1"
-  }, /* @__PURE__ */ React.createElement("h2", {
+  }, device.nickname ? /* @__PURE__ */ React.createElement("h2", {
     className: "text-lg"
-  }, device.name), /* @__PURE__ */ React.createElement("h3", {
-    className: "text-gray-800 text-sm"
-  }, "-")), /* @__PURE__ */ React.createElement("button", {
+  }, device.nickname, /* @__PURE__ */ React.createElement("span", {
+    className: "text-xs px-3 text-gray-500"
+  }, device.name)) : /* @__PURE__ */ React.createElement("h2", {
+    className: "text-lg"
+  }, device.name)), /* @__PURE__ */ React.createElement("button", {
     onClick: remove,
     className: "m-3 h-7 w-7 hover:bg-red-100 text-red-500 p-0 rounded-full flex items-center justify-center"
   }, "\xD7")));

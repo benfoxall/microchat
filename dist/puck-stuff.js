@@ -34,6 +34,7 @@ export class Socket extends EventTarget {
     const setState = (state) => {
       this.state = state;
       this.dispatchEvent(new Event("state-changed"));
+      console.info(device.name, state);
     };
     (async () => {
       assert(this.device.gatt);
