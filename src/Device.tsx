@@ -27,6 +27,8 @@ export const Device: FunctionComponent = () => {
   assert(route);
   const urlId = decodeURIComponent(route.params.id)
 
+  const deviceQuery = useLiveQuery(() => db.devices.get(urlId), []);
+
   const [device, reconnect, clear] = useDevice(route.params.name);
 
   const { send, output, error, state } = useSocket(device);
@@ -108,7 +110,21 @@ export const Device: FunctionComponent = () => {
           style={style}
         ></div>
 
-        <p className="px-4 text-xl font-mono flex-1">{device.name}</p>
+
+        <p className="px-4 text-xl font-mono flex-1">
+          {deviceQuery?.nickname ?
+            <>
+              <span>{deviceQuery?.nickname}</span>
+              <span className="text-xs px-3">{device.name}</span>
+            </> :
+
+            device.name
+
+
+          }
+
+
+        </p>
       </header>
 
       {expanded && (

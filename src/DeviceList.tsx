@@ -88,8 +88,15 @@ const DeviceListItem: FunctionComponent<{ device: IDevice }> = ({ device }) => {
         ></div>
 
         <div className="flex-1">
-          <h2 className="text-lg">{device.name}</h2>
-          <h3 className="text-gray-800 text-sm">-</h3>
+          {device.nickname ?
+            <h2 className="text-lg">
+              {device.nickname}
+              <span className="text-xs px-3 text-gray-500">{device.name}</span>
+            </h2> :
+            <h2 className="text-lg">{device.name}</h2>
+          }
+
+          {/* <h3 className="text-gray-800 text-sm">-</h3> */}
         </div>
 
         <button
