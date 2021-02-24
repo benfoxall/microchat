@@ -42,7 +42,7 @@ export const Device = () => {
     }
     sess.then((id) => db.sessions.update(id, {content: output})).then(() => console.log("updated session"));
   }, [prev, output]);
-  const style = useGradientStyle(route.params.id);
+  const style = useGradientStyle(deviceQuery?.id || "");
   const [expanded, setExpanded] = useState(false);
   if (!device) {
     return /* @__PURE__ */ React.createElement("div", {
