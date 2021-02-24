@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from "../_snowpack/pkg/react.js";
+import {useCallback, useEffect, useRef, useState} from "../_snowpack/pkg/react.js";
 import {assert, Queue} from "./util.js";
 const NORDIC_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const NORDIC_TX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
@@ -82,37 +82,41 @@ export const useSocket = (device) => {
   const [output, setOutput] = useState("");
   const [state, setState] = useState();
   const [sock, setSock] = useState();
-  const send = useCallback((value) => sock?.send(value + "\n"), [sock]);
   useEffect(() => {
-    setError(null);
-    if (!device)
-      return;
-    const socket = new Socket(device);
-    let cancel = false;
-    socket.addEventListener("error", (event) => {
-      setError(String(event.error) || "Error");
-    });
-    socket.addEventListener("close", () => {
-      if (cancel)
-        return;
-      setError("closed");
-    });
-    socket.addEventListener("state-changed", () => {
-      if (cancel)
-        return;
-      setState(socket.state);
-    });
-    socket.addEventListener("data", (event) => {
-      if (cancel)
-        return;
-      const payload = event.data;
-      setOutput((prev) => prev + payload);
-    });
-    setSock(socket);
-    return () => {
-      socket.close();
+    if (device) {
+      const socket = new Socket(device);
+      setError(null);
+      setSock(socket);
+      return () => socket.close();
+    } else {
       setSock(void 0);
-    };
+    }
   }, [device]);
+  const send = useCallback((value) => sock?.send(value + "\n"), [sock]);
+  useListener(sock, "error", (event) => {
+    setError(String(event.error) || "Error");
+  });
+  useListener(sock, "close", () => {
+    setError("closed");
+  });
+  useListener(sock, "state-changed", () => {
+    setState(sock.state);
+  });
+  useListener(sock, "data", (event) => {
+    setOutput((prev) => prev + event.data);
+  });
   return {error, output, send, state};
+};
+const useListener = (target, name, callback) => {
+  const fn = useRef(callback);
+  fn.current = callback;
+  useEffect(() => {
+    if (target) {
+      let handle = function(event) {
+        fn.current(event);
+      };
+      target.addEventListener(name, handle);
+      return () => target.removeEventListener(name, handle);
+    }
+  }, [target, name]);
 };
