@@ -74,7 +74,7 @@ export const Device: FunctionComponent = () => {
       .then(() => console.log('updated session'));
   }, [prev, output]);
 
-  const style = useGradientStyle(route.params.id);
+  const style = useGradientStyle(deviceQuery?.id || '');
   const [expanded, setExpanded] = useState(false);
 
   if (!device) {
@@ -104,6 +104,7 @@ export const Device: FunctionComponent = () => {
         <Link className="px-4 py-2 hover:text-blue-600" to="/">
           ←
         </Link>
+
 
         <div
           className="rounded-full bg-gray-800 w-7 h-7 transition shadow-md"
