@@ -78,16 +78,16 @@ export class Socket extends EventTarget {
   }
 }
 export const useSocket = (device) => {
-  const [queue] = useState(() => new Queue());
-  const send = useCallback((value) => queue.add(value + "\n"), [queue]);
   const [error, setError] = useState(null);
   const [output, setOutput] = useState("");
   const [state, setState] = useState();
+  const [sock, setSock] = useState();
+  const send = useCallback((value) => sock?.send(value + "\n"), [sock]);
   useEffect(() => {
     setError(null);
     if (!device)
       return;
-    const socket = new Socket(device, queue);
+    const socket = new Socket(device);
     let cancel = false;
     socket.addEventListener("error", (event) => {
       setError(String(event.error) || "Error");
@@ -108,8 +108,10 @@ export const useSocket = (device) => {
       const payload = event.data;
       setOutput((prev) => prev + payload);
     });
+    setSock(socket);
     return () => {
       socket.close();
+      setSock(void 0);
     };
   }, [device]);
   return {error, output, send, state};
