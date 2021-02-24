@@ -1,4 +1,12 @@
-export const useGradientStyle = (key) => {
+import React from "../_snowpack/pkg/react.js";
+export const Bubble = ({name, className = "", variant = "small"}) => {
+  const style = useGradientStyle(name || "");
+  return /* @__PURE__ */ React.createElement("div", {
+    className: className + " rounded-full bg-gray-800 transition shadow-md " + (variant === "small" ? "h-7 w-7" : "h-12 w-12"),
+    style
+  }, " ");
+};
+const useGradientStyle = (key) => {
   let h = 0;
   for (const letter of key) {
     h += letter.charCodeAt(0);

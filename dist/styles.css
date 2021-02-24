@@ -567,11 +567,6 @@ video {
   background-color: rgba(243, 244, 246, var(--tw-bg-opacity));
 }
 
-.hover\:bg-gray-700:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgba(55, 65, 81, var(--tw-bg-opacity));
-}
-
 .hover\:bg-red-100:hover {
   --tw-bg-opacity: 1;
   background-color: rgba(254, 226, 226, var(--tw-bg-opacity));
@@ -651,10 +646,6 @@ video {
 
 .h-7 {
   height: 1.75rem;
-}
-
-.h-10 {
-  height: 2.5rem;
 }
 
 .h-12 {
@@ -839,10 +830,6 @@ video {
 
 .w-7 {
   width: 1.75rem;
-}
-
-.w-10 {
-  width: 2.5rem;
 }
 
 .w-12 {

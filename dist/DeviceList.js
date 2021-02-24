@@ -1,7 +1,7 @@
 import React from "../_snowpack/pkg/react.js";
 import {generatePath, NavLink, useHistory} from "../_snowpack/pkg/react-router-dom.js";
 import {DEVICE_ROUTE} from "./Device.js";
-import {useGradientStyle} from "./util.js";
+import {Bubble} from "./util.js";
 import {db} from "./db.js";
 import {useLiveQuery} from "../_snowpack/pkg/dexie-react-hooks.js";
 import {useRequestDevice} from "./device-cache.js";
@@ -48,7 +48,6 @@ const DeviceListItem = ({device}) => {
     id: device.id,
     name: device.name || "?"
   });
-  const background = useGradientStyle(device.id);
   const remove = (e) => {
     e.preventDefault();
     if (confirm("Remove?"))
@@ -59,9 +58,11 @@ const DeviceListItem = ({device}) => {
     to: link,
     key: device.id
   }, /* @__PURE__ */ React.createElement("div", {
-    className: "rounded-full bg-gray-800 w-10 h-10 hover:bg-gray-700 transition shadow-md m-5",
-    style: background
-  }), /* @__PURE__ */ React.createElement("div", {
+    className: "m-5"
+  }, /* @__PURE__ */ React.createElement(Bubble, {
+    name: device.id,
+    variant: "large"
+  })), /* @__PURE__ */ React.createElement("div", {
     className: "flex-1"
   }, device.nickname ? /* @__PURE__ */ React.createElement("h2", {
     className: "text-lg"

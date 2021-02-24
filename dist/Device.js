@@ -8,7 +8,7 @@ import {useDevice} from "./device-cache.js";
 import {CodeInput} from "./CodeInput.js";
 import {db} from "./db.js";
 import {useSocket} from "./puck-stuff.js";
-import {useGradientStyle, assert} from "./util.js";
+import {assert, Bubble} from "./util.js";
 import {useLiveQuery} from "../_snowpack/pkg/dexie-react-hooks.js";
 export const DEVICE_ROUTE = "/\u2192/:id/:name";
 export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + "/info";
@@ -42,7 +42,6 @@ export const Device = () => {
     }
     sess.then((id) => db.sessions.update(id, {content: output})).then(() => console.log("updated session"));
   }, [prev, output]);
-  const style = useGradientStyle(deviceQuery?.id || "");
   const [expanded, setExpanded] = useState(false);
   if (!device) {
     return /* @__PURE__ */ React.createElement("div", {
@@ -64,10 +63,9 @@ export const Device = () => {
   }, /* @__PURE__ */ React.createElement(Link, {
     className: "px-4 py-2 hover:text-blue-600",
     to: "/"
-  }, "\u2190"), /* @__PURE__ */ React.createElement("div", {
-    className: "rounded-full bg-gray-800 w-7 h-7 transition shadow-md",
-    style
-  }), /* @__PURE__ */ React.createElement("p", {
+  }, "\u2190"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Bubble, {
+    name: deviceQuery?.id
+  })), /* @__PURE__ */ React.createElement("p", {
     className: "px-4 text-xl font-mono flex-1"
   }, deviceQuery?.nickname ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", null, deviceQuery?.nickname), /* @__PURE__ */ React.createElement("span", {
     className: "text-xs px-3"
