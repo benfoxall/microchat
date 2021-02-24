@@ -117,19 +117,21 @@ export class Socket extends EventTarget {
 // react bindings
 
 export const useSocket = (device?: BluetoothDevice) => {
-  const [queue] = useState(() => new Queue<string>());
-  const send = useCallback((value: string) => queue.add(value + '\n'), [queue]);
 
   const [error, setError] = useState<string | null>(null);
   const [output, setOutput] = useState<string>('');
   const [state, setState] = useState<SocketState>();
+
+  const [sock, setSock] = useState<Socket>();
+  const send = useCallback((value: string) => sock?.send(value + '\n'), [sock]);
+
 
   useEffect(() => {
     setError(null);
 
     if (!device) return;
 
-    const socket = new Socket(device, queue);
+    const socket = new Socket(device);
 
     let cancel = false;
 
@@ -153,8 +155,11 @@ export const useSocket = (device?: BluetoothDevice) => {
       setOutput((prev) => prev + payload);
     });
 
+    setSock(socket);
+
     return () => {
       socket.close();
+      setSock(undefined);
     };
   }, [device]);
 
