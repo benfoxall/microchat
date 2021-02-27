@@ -94,7 +94,8 @@ export const Device = () => {
   }, device.name)) : device.name)), expanded && /* @__PURE__ */ React.createElement("div", {
     className: "bg-gray-800 text-white p-8"
   }, /* @__PURE__ */ React.createElement(Details, {
-    id: decodeURIComponent(route.params.id)
+    id: decodeURIComponent(route.params.id),
+    send
   })), /* @__PURE__ */ React.createElement("main", {
     ref: main,
     className: "flex-1 font-mono whitespace-pre-wrap p-4 overflow-scroll"
@@ -109,11 +110,24 @@ export const Device = () => {
     onChange: send
   })));
 };
-const Details = ({id}) => {
+const Details = ({id, send}) => {
   const deviceQuery = useLiveQuery(() => db.devices.get(id), []);
   const setNickname = (e) => {
     const nickname = e.currentTarget.value;
     db.devices.update(id, {nickname});
+  };
+  const initMQTT = () => {
+    send("reset();");
+    send(`
+    setWatch(() => console.log("HEY"), BTN, {repeat:true});
+function hello() {
+    LED1.set()
+    if (process.env.BOARD === "BANGLEJS") Bangle.buzz();
+    setTimeout(() => {
+        LED1.reset()
+    }, 1000)
+}
+`);
   };
   return /* @__PURE__ */ React.createElement("form", {
     onSubmit: (e) => e.preventDefault()
@@ -126,5 +140,8 @@ const Details = ({id}) => {
     className: "text-black p-2",
     value: deviceQuery?.nickname || "",
     onChange: setNickname
-  })));
+  })), /* @__PURE__ */ React.createElement("button", {
+    className: "my-8 p-2 bg-blue-500 w-full ",
+    onClick: initMQTT
+  }, "Init MQTT & Reset()"));
 };
