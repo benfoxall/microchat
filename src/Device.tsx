@@ -89,16 +89,18 @@ export const Device: FunctionComponent = () => {
 
   const [mq] = useState(() => new Mqt('wss://mqtt.remotehack.space'));
   useEffect(() => {
-    mq.subscribe(CHANNEL_NAME, (message) => {
-      console.log('MESSAGE>', message);
+    console.log('subscribing to mqtt');
+
+    mq.subscribe(CHANNEL_NAME, (message: string) => {
+      // console.log('MESSAGE>', message);
       ref.current(message);
     });
   }, []);
 
   useEffect(() => {
-    console.log('CHECKING, ', output.slice(-7));
+    // console.log('CHECKING, ', output.slice(-7));
     if (output.slice(-7).includes('HEY')) {
-      console.log('TO SENDDDDD');
+      // console.log('TO SENDDDDD');
       mq.publish(CHANNEL_NAME, 'hello()');
     }
   }, [output]);
