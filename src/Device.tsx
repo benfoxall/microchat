@@ -153,7 +153,7 @@ export const Device: FunctionComponent = () => {
 
       {expanded && (
         <div className="bg-gray-800 text-white p-8">
-          <Details id={decodeURIComponent(route.params.id)} />
+          <Details id={decodeURIComponent(route.params.id)} send={send} />
         </div>
       )}
 
@@ -199,12 +199,30 @@ export const Device: FunctionComponent = () => {
   );
 };
 
-const Details: FunctionComponent<{ id: string }> = ({ id }) => {
+const Details: FunctionComponent<{
+  id: string;
+  send: (value: string) => void;
+}> = ({ id, send }) => {
   const deviceQuery = useLiveQuery(() => db.devices.get(id), []);
 
   const setNickname: ChangeEventHandler<HTMLInputElement> = (e) => {
     const nickname = e.currentTarget.value;
     db.devices.update(id, { nickname });
+  };
+
+  const initMQTT = () => {
+    send('reset();');
+
+    send(`
+    setWatch(() => console.log("HEY"), BTN, {repeat:true});
+function hello() {
+    LED1.set()
+    if (process.env.BOARD === "BANGLEJS") Bangle.buzz();
+    setTimeout(() => {
+        LED1.reset()
+    }, 1000)
+}
+`);
   };
 
   return (
@@ -218,6 +236,10 @@ const Details: FunctionComponent<{ id: string }> = ({ id }) => {
           onChange={setNickname}
         />
       </label>
+
+      <button className="my-8 p-2 bg-blue-500 w-full " onClick={initMQTT}>
+        Init MQTT &amp; Reset()
+      </button>
     </form>
   );
 };
