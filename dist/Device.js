@@ -10,7 +10,9 @@ import {db} from "./db.js";
 import {useSocket} from "./puck-stuff.js";
 import {assert, Bubble} from "./util.js";
 import {useLiveQuery} from "../_snowpack/pkg/dexie-react-hooks.js";
+import Mqt from "../_snowpack/pkg/mqt.js";
 export const DEVICE_ROUTE = "/\u2192/:id/:name";
+const CHANNEL_NAME = "test";
 export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + "/info";
 export const Device = () => {
   const route = useRouteMatch(DEVICE_ROUTE);
@@ -42,6 +44,26 @@ export const Device = () => {
     }
     sess.then((id) => db.sessions.update(id, {content: output})).then(() => console.log("updated session"));
   }, [prev, output]);
+  const [mqq] = useState(() => new Mqt("wss://mqtt.remotehack.space"));
+  const [mqChannel, setMqChannel] = useState("channel");
+  const [mqChannelConnect, setMqChannelConnect] = useState();
+  const submitChannel = () => {
+    setMqChannelConnect(mqChannel);
+  };
+  const ref = useRef(send);
+  ref.current = send;
+  const [mq] = useState(() => new Mqt("wss://mqtt.remotehack.space"));
+  useEffect(() => {
+    console.log("subscribing to mqtt");
+    mq.subscribe(CHANNEL_NAME, (message) => {
+      ref.current(message);
+    });
+  }, []);
+  useEffect(() => {
+    if (output.slice(-7).includes("HEY")) {
+      mq.publish(CHANNEL_NAME, "hello()");
+    }
+  }, [output]);
   const [expanded, setExpanded] = useState(false);
   if (!device) {
     return /* @__PURE__ */ React.createElement("div", {
