@@ -12,6 +12,7 @@ import { db } from './db';
 import { useSocket } from './puck-stuff';
 import { assert, Bubble } from './util';
 import { useLiveQuery } from 'dexie-react-hooks';
+import Mqt from 'mqt';
 
 export const DEVICE_ROUTE = '/→/:id/:name';
 export interface IDEVICE_ROUTE {
@@ -19,13 +20,15 @@ export interface IDEVICE_ROUTE {
   name: string;
 }
 
+const CHANNEL_NAME = 'test';
+
 export const DEVICE_INFO_ROUTE = DEVICE_ROUTE + '/info';
 
 export const Device: FunctionComponent = () => {
   const route = useRouteMatch<IDEVICE_ROUTE>(DEVICE_ROUTE);
 
   assert(route);
-  const urlId = decodeURIComponent(route.params.id)
+  const urlId = decodeURIComponent(route.params.id);
 
   const deviceQuery = useLiveQuery(() => db.devices.get(urlId), []);
 
@@ -74,6 +77,32 @@ export const Device: FunctionComponent = () => {
       .then(() => console.log('updated session'));
   }, [prev, output]);
 
+  const [mqq] = useState(() => new Mqt('wss://mqtt.remotehack.space'));
+  const [mqChannel, setMqChannel] = useState('channel');
+  const [mqChannelConnect, setMqChannelConnect] = useState<string>();
+  const submitChannel = () => {
+    setMqChannelConnect(mqChannel);
+  };
+
+  const ref = useRef(send);
+  ref.current = send;
+
+  const [mq] = useState(() => new Mqt('wss://mqtt.remotehack.space'));
+  useEffect(() => {
+    mq.subscribe(CHANNEL_NAME, (message) => {
+      console.log('MESSAGE>', message);
+      ref.current(message);
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log('CHECKING, ', output.slice(-7));
+    if (output.slice(-7).includes('HEY')) {
+      console.log('TO SENDDDDD');
+      mq.publish(CHANNEL_NAME, 'hello()');
+    }
+  }, [output]);
+
   const [expanded, setExpanded] = useState(false);
 
   if (!device) {
@@ -104,25 +133,19 @@ export const Device: FunctionComponent = () => {
           ←
         </Link>
 
-
         <div>
           <Bubble name={deviceQuery?.id} />
         </div>
 
-
         <p className="px-4 text-xl font-mono flex-1">
-          {deviceQuery?.nickname ?
+          {deviceQuery?.nickname ? (
             <>
               <span>{deviceQuery?.nickname}</span>
               <span className="text-xs px-3">{device.name}</span>
-            </> :
-
+            </>
+          ) : (
             device.name
-
-
-          }
-
-
+          )}
         </p>
       </header>
 
@@ -154,6 +177,20 @@ export const Device: FunctionComponent = () => {
       )}
 
       <footer>
+        {/* <form className="m-4 p-2 bg-green-400" onSubmit={submitChannel}>
+          <label>
+            channel
+            <input
+              type="text"
+              className="p-2 m-2 bg-white"
+              value={mqChannel}
+              onChange={(e) => {
+                setMqChannel(e.currentTarget.value);
+              }}
+            />
+          </label>
+          <input type="submit" value="change" className="p-2 m-2 bg-white" />
+        </form> */}
         <CodeInput onChange={send} />
       </footer>
     </section>
@@ -163,10 +200,9 @@ export const Device: FunctionComponent = () => {
 const Details: FunctionComponent<{ id: string }> = ({ id }) => {
   const deviceQuery = useLiveQuery(() => db.devices.get(id), []);
 
-
   const setNickname: ChangeEventHandler<HTMLInputElement> = (e) => {
     const nickname = e.currentTarget.value;
-    db.devices.update(id, { nickname })
+    db.devices.update(id, { nickname });
   };
 
   return (
